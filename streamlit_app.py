@@ -10,6 +10,8 @@ def main():
     """Execution starts here."""
     get_replicate_api_token()
     display_sidebar_ui()
+    st.write('Hello, *World!* :sunglasses:')
+
     # init_chat_history()
     # display_chat_messages()
     # get_and_process_prompt()
