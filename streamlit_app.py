@@ -12,6 +12,25 @@ import numpy as np
 st.set_page_config(page_title="Lux's App")
 
 
+# Function to add a new category
+def add_category():
+    new_category = st.text_input("New Category Name:")
+    new_value = st.slider("Value for " + new_category, 0, 10, 5)
+    if st.button("Add Category"):
+        if new_category:
+            st.session_state.categories.append(new_category)
+            st.session_state.values.append(new_value)
+
+# Function to remove an existing category
+def remove_category():
+    category_to_remove = st.selectbox("Select Category to Remove", st.session_state.categories)
+    if st.button("Remove Category"):
+        if category_to_remove:
+            index = st.session_state.categories.index(category_to_remove)
+            st.session_state.categories.pop(index)
+            st.session_state.values.pop(index)
+
+
 def main():
     """Execution starts here."""
     get_replicate_api_token()
@@ -19,23 +38,24 @@ def main():
     with st.echo():
         st.write("This code will be printed")
 
-    st.write("Hello, *World!* :sunglasses:")
+    # Initialize session state if it does not exist
+    if 'categories' not in st.session_state:
+        st.session_state.categories = ["home", "money", "friendships", "career", "health", "fun", "personal growth", "community"]
+    if 'values' not in st.session_state:
+        st.session_state.values = [7, 5, 8, 6, 9, 4, 7, 5]
 
-    # Define categories and their corresponding values
-    categories = [
-        "home",
-        "money",
-        "friendships",
-        "career",
-        "health",
-        "fun",
-        "personal growth",
-        "community",
-    ]
-    values = [7, 5, 8, 6, 9, 4, 7, 5]
+        # Define categories and their corresponding values
+    st.header("Current Categories and Values")
+    st.write({cat: val for cat, val in zip(st.session_state.categories, st.session_state.values)})
+
+    st.header("Add a New Category")
+    add_category()
+
+    st.header("Remove an Existing Category")
+    remove_category()
 
     # Number of categories
-    N = len(categories)
+    N = len(st.session_state.categories)
 
     # Calculate the angles for each category
     angles = np.linspace(0, 360, N, endpoint=False)
@@ -47,9 +67,9 @@ def main():
     # Create the polar bar chart
     fig = go.Figure(
         go.Barpolar(
-            r=values,
+            r=st.session_state.values,
             theta=angles,
-            marker_color=values,  # Use the values to determine the color
+            marker_color=st.session_state.values,  # Use the values to determine the color
             marker_colorscale=custom_colorscale,  # Choose a colorscale
             marker_colorbar_thickness=24,
             marker_cmin=0,
@@ -63,13 +83,13 @@ def main():
         height=500,
         polar=dict(
             radialaxis=dict(range=[0, 10], visible=True),
-            angularaxis=dict(tickmode="array", tickvals=angles, ticktext=categories),
+            angularaxis=dict(tickmode="array", tickvals=angles, ticktext=st.session_state.categories),
         ),
         title="Wheel of Life Chart",
     )
 
-    fig.show()
-    fig
+    st.plotly_chart(fig)
+
     # init_chat_history()
     # display_chat_messages()
     # get_and_process_prompt()
