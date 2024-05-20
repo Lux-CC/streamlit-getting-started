@@ -39,6 +39,10 @@ def main():
 
     # Calculate the angles for each category
     angles = np.linspace(0, 360, N, endpoint=False)
+    custom_colorscale = [
+        [0.0, 'rgb(255, 165, 0)'],  # Orange
+        [1.0, 'rgb(0, 128, 0)']     # Green
+    ]
 
     # Create the polar bar chart
     fig = go.Figure(
@@ -46,7 +50,7 @@ def main():
             r=values,
             theta=angles,
             marker_color=values,  # Use the values to determine the color
-            marker_colorscale="viridis",  # Choose a colorscale
+            marker_colorscale=custom_colorscale,  # Choose a colorscale
             marker_colorbar_thickness=24,
             marker_cmin=0,
             marker_cmax=10,  # Assuming values are between 0 and 10
