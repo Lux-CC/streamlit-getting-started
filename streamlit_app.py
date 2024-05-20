@@ -224,6 +224,11 @@ def news_agg(rss):
     return rss_df
 
 
+
+# Use a text_input to get the keywords to filter the dataframe
+text_search = st.text_input("Search feed", value="")
+
+
 dataframes = [news_agg(i) for i in rss]
 final_df = pd.concat(dataframes, ignore_index=True)
 
