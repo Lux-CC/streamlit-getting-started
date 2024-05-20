@@ -23,32 +23,31 @@ os.environ["REPLICATE_API_TOKEN"] = st.secrets["REPLICATE_API_TOKEN"]
 
 def get_top_5_documents(query, df):
     model = SentenceTransformer("snowflake/snowflake-arctic-embed-l")
-    
+
     # Extracting the descriptions from the dataframe
-    documents = df['description'].tolist()
-    
+    documents = df["description"].tolist()
+
     # Encode the query and documents
     query_embeddings = model.encode([query], prompt_name="query")
     document_embeddings = model.encode(documents)
-    
+
     # Compute the scores
     scores = query_embeddings @ document_embeddings.T
-    
+
     # Zip scores with documents and sort
     doc_score_pairs = list(zip(documents, scores[0]))
     doc_score_pairs = sorted(doc_score_pairs, key=lambda x: x[1], reverse=True)
-    
+
     # Get the top 5 documents
     top_5_doc_score_pairs = doc_score_pairs[:5]
-    
+
     # Find the indices of the top 5 documents
     top_5_indices = [documents.index(doc) for doc, score in top_5_doc_score_pairs]
-    
+
     # Select the top 5 rows from the dataframe
     top_5_df = df.iloc[top_5_indices]
-    
-    return top_5_df
 
+    return top_5_df
 
 
 @st.cache_resource(show_spinner=False)
@@ -100,6 +99,7 @@ def arctic_summary(text):
                 st.write("I cannot answer this question.")
         yield str(event)
 
+
 def arctic_answer(query, text):
     """
     Generate a summary for the given text using the Arctic model.
@@ -116,7 +116,9 @@ def arctic_answer(query, text):
             "snowflake/snowflake-arctic-instruct",
             input={
                 "prompt": query,
-                "prompt_template": r"You're a helpful AI. You know the latest news of snowflake: " +  text + r"Answer the following question {prompt}. Summarize the core content of this release article.",
+                "prompt_template": r"You're a helpful AI. You know the latest news of snowflake: "
+                + text
+                + r"Answer the following question {prompt}. Summarize the core content of this release article.",
                 "max_new_tokens": 512,
             },
         )
@@ -352,6 +354,7 @@ def fetch_webpage_summary(url):
         st.error(f"Error fetching webpage content: {e}")
         return ""
 
+
 def show_news(news_df):
     """
     Show the news feed in a table.
@@ -364,7 +367,7 @@ def show_news(news_df):
         description = i["description"]
         url_txt = i["title"]
         src_time = i["src_time"]
-    
+
         st.markdown(
             f"""
         <div style="border:1px solid #ddd; padding: 10px; margin: 10px 0; border-radius: 5px;">
@@ -380,6 +383,7 @@ def show_news(news_df):
             summary = fetch_webpage_summary(href)
             st.write(f"**Summary:** {summary}")
 
+
 def show_answer(news_df, query):
     """
     Show the answer.
@@ -393,12 +397,12 @@ def show_answer(news_df, query):
         description = i["description"]
         url_txt = i["title"]
         src_time = i["src_time"]
-    
+
         summaries.append(fetch_webpage_summary(href))
 
     answer = arctic_answer(query, " ".join(summaries))
 
-    st.write(f"**Summary:** {answer}")
+    st.write(f"**Summary:** {''.join([token for token in answer])}")
 
 
 def main():
@@ -416,10 +420,11 @@ def main():
     for feed in rss_feeds:
         feed_data = news_agg(feed)
         all_news = pd.concat([all_news, feed_data], ignore_index=True)
-    
-    all_news.sort_values(by="elapsed_time", inplace=True)
-    all_news["src_time"] = all_news["src"] + ("&nbsp;" * 5) + all_news["elapsed_time_str"]
 
+    all_news.sort_values(by="elapsed_time", inplace=True)
+    all_news["src_time"] = (
+        all_news["src"] + ("&nbsp;" * 5) + all_news["elapsed_time_str"]
+    )
 
     if not all_news.empty:
         st.subheader("Aggregated News Feed")
