@@ -296,7 +296,7 @@ def summarize_article(paragraph_list):
         else:
             text_to_summarize += paragraph
 
-    summary_tokens = summary_tokens.extend(
+    summary_tokens.extend(
         [token for token in arctic_summary(text_to_summarize)]
     )
     st.write(summary_tokens)
