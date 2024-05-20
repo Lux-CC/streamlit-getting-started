@@ -22,9 +22,12 @@ def add_category():
             st.session_state.categories.append(new_category)
             st.session_state.category_values.append(new_value)
 
+
 # Function to remove an existing category
 def remove_category():
-    category_to_remove = st.selectbox("Select Category to Remove", st.session_state.categories)
+    category_to_remove = st.selectbox(
+        "Select Category to Remove", st.session_state.categories
+    )
     if st.button("Remove Category"):
         if category_to_remove:
             index = st.session_state.categories.index(category_to_remove)
@@ -40,16 +43,32 @@ def main():
         st.write("This code will be printed")
 
     # Initialize session state if it does not exist
-    if 'categories' not in st.session_state:
-        st.session_state.categories = ["home", "money", "friendships", "career", "health", "fun", "personal growth", "community"]
-    if 'values' not in st.session_state:
+    if "categories" not in st.session_state:
+        st.session_state.categories = [
+            "home",
+            "money",
+            "friendships",
+            "career",
+            "health",
+            "fun",
+            "personal growth",
+            "community",
+        ]
+    if "values" not in st.session_state:
         st.session_state.category_values = [7, 5, 8, 6, 9, 4, 7, 5]
-    if 'selected_category' not in st.session_state:
+    if "selected_category" not in st.session_state:
         st.session_state.selected_category = None
 
         # Define categories and their corresponding values
     st.header("Current Categories and Values")
-    st.write({cat: val for cat, val in zip(st.session_state.categories, st.session_state.category_values)})
+    st.write(
+        {
+            cat: val
+            for cat, val in zip(
+                st.session_state.categories, st.session_state.category_values
+            )
+        }
+    )
 
     st.header("Add a New Category")
     add_category()
@@ -63,8 +82,8 @@ def main():
     # Calculate the angles for each category
     angles = np.linspace(0, 360, N, endpoint=False)
     custom_colorscale = [
-        [0.0, 'rgb(255, 165, 0)'],  # Orange
-        [1.0, 'rgb(0, 128, 0)']     # Green
+        [0.0, "rgb(255, 165, 0)"],  # Orange
+        [1.0, "rgb(0, 128, 0)"],  # Green
     ]
 
     # Create the polar bar chart
@@ -86,18 +105,22 @@ def main():
         height=500,
         polar=dict(
             radialaxis=dict(range=[0, 10], visible=True),
-            angularaxis=dict(tickmode="array", tickvals=angles, ticktext=st.session_state.categories),
+            angularaxis=dict(
+                tickmode="array", tickvals=angles, ticktext=st.session_state.categories
+            ),
         ),
         title="Wheel of Life Chart",
     )
 
     st.plotly_chart(fig)
     # Use streamlit_plotly_events to capture click events
-    selected_points = plotly_events(fig, click_event=True, hover_event=False, select_event=False, key="polar_chart")
+    selected_points = plotly_events(
+        fig, click_event=True, hover_event=False, select_event=False, key="polar_chart"
+    )
 
     # Handle click events
     if selected_points:
-        selected_index = selected_points[0]['pointIndex']
+        selected_index = selected_points[0]["pointIndex"]
         st.session_state.selected_category = st.session_state.categories[selected_index]
         st.write(f"Selected Category: {st.session_state.selected_category}")
 
