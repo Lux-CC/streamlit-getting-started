@@ -19,7 +19,7 @@ def add_category():
     if st.button("Add Category"):
         if new_category:
             st.session_state.categories.append(new_category)
-            st.session_state.values.append(new_value)
+            st.session_state.category_values.append(new_value)
 
 # Function to remove an existing category
 def remove_category():
@@ -28,7 +28,7 @@ def remove_category():
         if category_to_remove:
             index = st.session_state.categories.index(category_to_remove)
             st.session_state.categories.pop(index)
-            st.session_state.values.pop(index)
+            st.session_state.category_values.pop(index)
 
 
 def main():
