@@ -65,7 +65,7 @@ def main():
     )
 
     fig.show()
-
+    fig
     # init_chat_history()
     # display_chat_messages()
     # get_and_process_prompt()
