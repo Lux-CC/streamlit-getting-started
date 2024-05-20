@@ -91,8 +91,10 @@ def main():
         go.Barpolar(
             r=st.session_state.category_values,
             theta=angles,
-            marker_color=(((st.session_state.category_values/10).flatten()) ** 2
-            - 0.2)*10,  # marker_color is a function of radius
+            marker_color=(
+                ((st.session_state.category_values / 10).flatten()) ** 2 - 0.2
+            )
+            * 10,  # marker_color is a function of radius
             marker_colorscale=custom_colorscale,  # Choose a colorscale
             marker_colorbar_thickness=24,
             marker_cmin=0,
