@@ -2,63 +2,114 @@ import streamlit as st
 import replicate
 import os
 from transformers import AutoTokenizer
+
 # import plotly.express as px
 import pandas as pd
 import plotly.graph_objects as go
 import numpy as np
- 
+
 # App title
 st.set_page_config(page_title="Lux's App")
+
 
 def main():
     """Execution starts here."""
     get_replicate_api_token()
     display_sidebar_ui()
     with st.echo():
-      st.write('This code will be printed')
+        st.write("This code will be printed")
 
-    st.write('Hello, *World!* :sunglasses:')
-    r, theta = np.meshgrid(np.linspace(0, 1, 10), np.linspace(0, 360, 18))
+    st.write("Hello, *World!* :sunglasses:")
 
-    fig = go.Figure(go.Barpolar(
-        r= r.flatten(),
-        theta=theta.flatten(),
-        marker_color=(r.flatten())**2-0.2, #marker_color is a function of radius
-        marker_colorscale="viridis", marker_colorbar_thickness=24,
-        marker_cmin=0, marker_cmax=1))
-    fig.update_layout(width=500, height=500)
+    # Define categories and their corresponding values
+    categories = [
+        "home",
+        "money",
+        "friendships",
+        "career",
+        "health",
+        "fun",
+        "personal growth",
+        "community",
+    ]
+    values = [7, 5, 8, 6, 9, 4, 7, 5]
+
+    # Number of categories
+    N = len(categories)
+
+    # Calculate the angles for each category
+    angles = np.linspace(0, 360, N, endpoint=False)
+
+    # Create the polar bar chart
+    fig = go.Figure(
+        go.Barpolar(
+            r=values,
+            theta=angles,
+            marker_color=values,  # Use the values to determine the color
+            marker_colorscale="viridis",  # Choose a colorscale
+            marker_colorbar_thickness=24,
+            marker_cmin=0,
+            marker_cmax=10,  # Assuming values are between 0 and 10
+        )
+    )
+
+    # Update layout to add category names to the polar plot
+    fig.update_layout(
+        width=500,
+        height=500,
+        polar=dict(
+            radialaxis=dict(range=[0, 10], visible=True),
+            angularaxis=dict(tickmode="array", tickvals=angles, ticktext=categories),
+        ),
+        title="Wheel of Life Chart",
+    )
+
     fig.show()
-    fig
 
     # init_chat_history()
     # display_chat_messages()
     # get_and_process_prompt()
 
+
 def get_replicate_api_token():
-    os.environ['REPLICATE_API_TOKEN'] = st.secrets['REPLICATE_API_TOKEN']
+    os.environ["REPLICATE_API_TOKEN"] = st.secrets["REPLICATE_API_TOKEN"]
+
 
 def display_sidebar_ui():
     with st.sidebar:
-        st.title('Some side panel')
+        st.title("Some side panel")
         st.subheader("Subheader")
-        st.slider('temperature', min_value=0.01, max_value=5.0, value=0.3,
-                                step=0.01, key="temperature")
+        st.slider(
+            "temperature",
+            min_value=0.01,
+            max_value=5.0,
+            value=0.3,
+            step=0.01,
+            key="temperature",
+        )
 
-        st.button('Clear chat history', on_click=clear_chat_history)
+        st.button("Clear chat history", on_click=clear_chat_history)
 
-        st.sidebar.caption('Build your own app powered by Arctic and [enter to win](https://arctic-streamlit-hackathon.devpost.com/) $10k in prizes.')
+        st.sidebar.caption(
+            "Build your own app powered by Arctic and [enter to win](https://arctic-streamlit-hackathon.devpost.com/) $10k in prizes."
+        )
 
         st.subheader("About")
-        st.caption('Soow. Very nice')
+        st.caption("Soow. Very nice")
 
         # # # Uncomment to show debug info
         # st.subheader("Debug")
         # st.write(st.session_state)
 
-def clear_chat_history():
-    st.session_state.messages = [{"role": "assistant", "content": "Hi. I'm Arctic, a new, efficient, intelligent, and truly open language model created by Snowflake AI Research. Ask me anything."}]
-    st.session_state.chat_aborted = False
 
+def clear_chat_history():
+    st.session_state.messages = [
+        {
+            "role": "assistant",
+            "content": "Hi. I'm Arctic, a new, efficient, intelligent, and truly open language model created by Snowflake AI Research. Ask me anything.",
+        }
+    ]
+    st.session_state.chat_aborted = False
 
 
 # def init_chat_history():
@@ -87,7 +138,7 @@ def clear_chat_history():
 # def get_llamaguard_deployment():
 #     return replicate.deployments.get("snowflake/llamaguard")
 
-# def check_safety(disable=False) -> bool: 
+# def check_safety(disable=False) -> bool:
 #     if disable:
 #         return True
 
@@ -112,7 +163,7 @@ def clear_chat_history():
 #     return len(tokens)
 
 # def abort_chat(error_message: str):
-#     """Display an error message requiring the chat to be cleared. 
+#     """Display an error message requiring the chat to be cleared.
 #     Forces a rerun of the app."""
 #     assert error_message, "Error message must be provided."
 #     error_message = f":red[{error_message}]"
@@ -146,17 +197,17 @@ def clear_chat_history():
 #             prompt.append("<|im_start|>user\n" + dict_message["content"] + "<|im_end|>")
 #         else:
 #             prompt.append("<|im_start|>assistant\n" + dict_message["content"] + "<|im_end|>")
-    
+
 #     prompt.append("<|im_start|>assistant")
 #     prompt.append("")
 #     prompt_str = "\n".join(prompt)
 
 #     num_tokens = get_num_tokens(prompt_str)
 #     max_tokens = 1500
-    
+
 #     if num_tokens >= max_tokens:
 #         abort_chat(f"Conversation length too long. Please keep it under {max_tokens} tokens.")
-    
+
 #     st.session_state.messages.append({"role": "assistant", "content": ""})
 #     for event_index, event in enumerate(replicate.stream("snowflake/snowflake-arctic-instruct",
 #                            input={"prompt": prompt_str,
