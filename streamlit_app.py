@@ -28,9 +28,7 @@ def main():
         marker_cmin=0, marker_cmax=1))
     fig.update_layout(width=500, height=500)
     fig.show()
-
-
-
+    fig
 
     # init_chat_history()
     # display_chat_messages()
