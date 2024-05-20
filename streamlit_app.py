@@ -38,7 +38,7 @@ def get_num_tokens(prompt):
 def arctic_summary(text):
     for event_index, event in enumerate(replicate.stream("snowflake/snowflake-arctic-instruct",
                            input={"prompt": text,
-                                  "prompt_template": r"Note the following release note: {prompt}. Summarize this release note.",
+                                  "prompt_template": r"Note the following release webpage: {prompt}. Summarize the core content of this release article.",
                                 #   "temperature": st.session_state.temperature,
                                 #   "top_p": st.session_state.top_p,
                                   })):
