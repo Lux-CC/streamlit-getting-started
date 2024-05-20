@@ -7,8 +7,8 @@ from dateutil import parser
 import streamlit as st
 
 rss = [
-    "https://www.economictimes.indiatimes.com/rssfeedstopstories.cms",
-    "http://feeds.feedburner.com/ndtvprofit-latest?format=xml",
+    "https://www.snowflake.com/feed/",
+    "https://rss.aws-news.com/custom_feeds/FEzdG/rss",
     # "https://www.thehindubusinessline.com/news/feeder/default.rss",
     # "https://www.moneycontrol.com/rss/latestnews.xml",
     # "https://www.livemint.com/rss/news",
