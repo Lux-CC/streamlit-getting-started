@@ -9,6 +9,7 @@ import streamlit as st
 from transformers import AutoTokenizer
 import replicate
 from sentence_transformers import SentenceTransformer
+from typing import List
 
 
 # List of RSS feeds to fetch
@@ -21,7 +22,7 @@ rss_feeds = [
 os.environ["REPLICATE_API_TOKEN"] = st.secrets["REPLICATE_API_TOKEN"]
 
 
-def generate_embeddings(query, documents):
+def generate_embeddings(query, documents: List[str]):
     model = SentenceTransformer("Snowflake/snowflake-arctic-embed-l")
 
     queries = [query]
