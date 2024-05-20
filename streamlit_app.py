@@ -35,7 +35,7 @@ def get_num_tokens(prompt):
     tokens = tokenizer.tokenize(prompt)
     return len(tokens)
 
-def arctic_summary(text):
+def arctic_summary(text, index):
     for event_index, event in enumerate(replicate.stream("snowflake/snowflake-arctic-instruct",
                            input={"prompt": text,
                                   "prompt_template": r"{prompt}",
@@ -45,6 +45,7 @@ def arctic_summary(text):
         if (event_index + 0) % 50 == 0:
             if not check_safety(text):
                 st.write("I cannot answer this question.")
+        yield str(event)
 
 
 def check_safety(text) -> bool:
@@ -269,7 +270,7 @@ def news_agg(rss):
 # Summarization function
 def summarize_article(description):
     summary = arctic_summary(description)
-    return summary
+    return [token for token in summary]
 
 
 # Use a text_input to get the keywords to filter the dataframe
