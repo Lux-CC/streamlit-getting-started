@@ -10,5 +10,3 @@ lxml
 python-dateutil
 requests
 bs4
-pytorch
-tensorflow
