@@ -1,290 +1,220 @@
-import streamlit as st
-import replicate
-import os
-from transformers import AutoTokenizer
-from streamlit_plotly_events import plotly_events
-
-# import plotly.express as px
 import pandas as pd
-import plotly.graph_objects as go
 import numpy as np
+from bs4 import BeautifulSoup
+import requests as r
+import regex as re
+from dateutil import parser
+import streamlit as st
 
-# App title
-st.set_page_config(page_title="Lux's App")
+rss = ['https://www.economictimes.indiatimes.com/rssfeedstopstories.cms',
+      'http://feeds.feedburner.com/ndtvprofit-latest?format=xml',
+      'https://www.thehindubusinessline.com/news/feeder/default.rss',
+      'https://www.moneycontrol.com/rss/latestnews.xml',
+      'https://www.livemint.com/rss/news',
+      'https://www.financialexpress.com/feed/',
+      'https://www.business-standard.com/rss/latest.rss',
+      'https://www.businesstoday.in/rssfeeds/?id=225346',
+      'https://www.zeebiz.com/latest.xml/feed']
 
-
-# Function to add a new category
-def add_category():
-    new_category = st.text_input("New Category Name:")
-    new_value = st.slider("Value for " + new_category, 0, 10, 5)
-    if st.button("Add Category"):
-        if new_category:
-            st.session_state.categories.append(new_category)
-            st.session_state.category_values.append(new_value)
-
-
-# Function to remove an existing category
-def remove_category():
-    category_to_remove = st.selectbox(
-        "Select Category to Remove", st.session_state.categories
-    )
-    if st.button("Remove Category"):
-        if category_to_remove:
-            index = st.session_state.categories.index(category_to_remove)
-            st.session_state.categories.pop(index)
-            st.session_state.category_values.pop(index)
-
-
-def main():
-    """Execution starts here."""
-    get_replicate_api_token()
-    display_sidebar_ui()
-    with st.echo():
-        st.write("This code will be printed")
-
-    # Initialize session state if it does not exist
-    if "categories" not in st.session_state:
-        st.session_state.categories = [
-            "home",
-            "money",
-            "friendships",
-            "career",
-            "health",
-            "fun",
-            "personal growth",
-            "community",
-        ]
-    if "values" not in st.session_state:
-        st.session_state.category_values = [7, 5, 8, 6, 9, 4, 7, 5]
-    if "selected_category" not in st.session_state:
-        st.session_state.selected_category = None
-
-        # Define categories and their corresponding values
-    st.header("Current Categories and Values")
-    st.write(
-        {
-            cat: val
-            for cat, val in zip(
-                st.session_state.categories, st.session_state.category_values
-            )
-        }
-    )
-
-    st.header("Add a New Category")
-    add_category()
-
-    st.header("Remove an Existing Category")
-    remove_category()
-
-    # Number of categories
-    N = len(st.session_state.categories)
-
-    # Calculate the angles for each category
-    angles = np.linspace(0, 360, N, endpoint=False)
-    custom_colorscale = [
-        [0.0, "rgb(255, 165, 0)"],  # Orange
-        [1.0, "rgb(0, 128, 0)"],  # Green
-    ]
-
-    # Create the polar bar chart
-    fig = go.Figure(
-        go.Barpolar(
-            r=st.session_state.category_values,
-            theta=angles,
-            marker_color=(
-                ((st.session_state.category_values / 10).flatten()) ** 2 - 0.2
-            )
-            * 10,  # marker_color is a function of radius
-            marker_colorscale=custom_colorscale,  # Choose a colorscale
-            marker_colorbar_thickness=24,
-            marker_cmin=0,
-            marker_cmax=10,  # Assuming values are between 0 and 10
-        )
-    )
-
-    # Update layout to add category names to the polar plot
-    fig.update_layout(
-        width=500,
-        height=500,
-        polar=dict(
-            radialaxis=dict(range=[0, 10], visible=True),
-            angularaxis=dict(
-                tickmode="array", tickvals=angles, ticktext=st.session_state.categories
-            ),
-        ),
-        title="Wheel of Life Chart",
-    )
-
-    st.plotly_chart(fig)
-    # Use streamlit_plotly_events to capture click events
-    selected_points = plotly_events(
-        fig, click_event=True, hover_event=False, select_event=False, key="polar_chart"
-    )
-
-    # Handle click events
-    if selected_points:
-        selected_index = selected_points[0]["pointIndex"]
-        st.session_state.selected_category = st.session_state.categories[selected_index]
-        st.write(f"Selected Category: {st.session_state.selected_category}")
-
-    # init_chat_history()
-    # display_chat_messages()
-    # get_and_process_prompt()
+def date_time_parser(dt):
+    '''
+    Returns the time elapsed (in minutes) since the news was published
+    
+    dt: str
+        published date
+        
+    Returns
+    int: time elapsed (in minutes)
+    '''
+    return int(np.round((dt.now(dt.tz) - dt).total_seconds() / 60, 0))
 
 
-def get_replicate_api_token():
-    os.environ["REPLICATE_API_TOKEN"] = st.secrets["REPLICATE_API_TOKEN"]
+def elapsed_time_str(mins):
+    '''
+    Returns the word form of the time elapsed (in minutes) since the news was published
+    
+    mins: int
+        time elapsed (in minutes)
+        
+    Returns
+    str: word form of time elapsed (in minutes)
+    '''
+    time_str = '' # Initializing a variable that stores the word form of time
+    hours = int(mins / 60) # integer part of hours. Example: if time elapsed is 2.5 hours, then hours = 2
+    days = np.round(mins / (60 * 24), 1) # days elapsed
+    # minutes portion of time elapsed in hours. Example: if time elapsed is 2.5 hours, then remaining_mins = 30
+    remaining_mins = int(mins - (hours * 60))
+    
+    if (days >= 1):
+        time_str = f'{str(days)} days ago' # Example: days = 1.2 => time_str = 1.2 days ago
+        if days == 1:
+            time_str = 'a day ago'  # Example: days = 1 => time_str = a day ago
+            
+    elif (days < 1) & (hours < 24) & (mins >= 60):
+        time_str = f'{str(hours)} hours and {str(remaining_mins)} mins ago' # Example: 2 hours and 15 mins ago
+        if (hours == 1) & (remaining_mins > 1):
+            time_str = f'an hour and {str(remaining_mins)} mins ago' # Example: an hour and 5 mins ago
+        if (hours == 1) & (remaining_mins == 1):
+            time_str = f'an hour and a min ago' # Example: an hour and a min ago
+        if (hours > 1) & (remaining_mins == 1):
+            time_str = f'{str(hours)} hours and a min ago' # Example: 5 hours and a min ago
+        if (hours > 1) & (remaining_mins == 0):
+            time_str = f'{str(hours)} hours ago' # Example: 4 hours ago
+        if ((mins / 60) == 1) & (remaining_mins == 0):
+            time_str = 'an hour ago' # Example: an hour ago
+            
+    elif (days < 1) & (hours < 24) & (mins == 0):
+        time_str = 'Just in' # if minutes == 0 then time_str = 'Just In'
+        
+    else:
+        time_str = f'{str(mins)} minutes ago' # Example: 5 minutes ago
+        if mins == 1:
+            time_str = 'a minute ago'
+    return time_str
 
 
-def display_sidebar_ui():
-    with st.sidebar:
-        st.title("Some side panel")
-        st.subheader("Subheader")
-        st.slider(
-            "temperature",
-            min_value=0.01,
-            max_value=5.0,
-            value=0.3,
-            step=0.01,
-            key="temperature",
-        )
-
-        st.button("Clear chat history", on_click=clear_chat_history)
-
-        st.sidebar.caption(
-            "Build your own app powered by Arctic and [enter to win](https://arctic-streamlit-hackathon.devpost.com/) $10k in prizes."
-        )
-
-        st.subheader("About")
-        st.caption("Soow. Very nice")
-
-        # # # Uncomment to show debug info
-        # st.subheader("Debug")
-        # st.write(st.session_state)
+def text_clean(desc):
+    '''
+    Returns cleaned text by removing the unparsed HTML characters from a news item's description/title
+    
+    dt: str
+        description/title of a news item
+        
+    Returns
+    str: cleaned description/title of a news item
+    '''
+    desc = desc.replace("&lt;", "<")
+    desc = desc.replace("&gt;", ">")
+    desc = re.sub("<.*?>", "", desc) # Removing HTML tags from the description/title
+    desc = desc.replace("#39;", "'")
+    desc = desc.replace('&quot;', '"')
+    desc = desc.replace('&nbsp;', '"')
+    desc = desc.replace('#32;', ' ')
+    return desc
 
 
-def clear_chat_history():
-    st.session_state.messages = [
-        {
-            "role": "assistant",
-            "content": "Hi. I'm Arctic, a new, efficient, intelligent, and truly open language model created by Snowflake AI Research. Ask me anything.",
-        }
-    ]
-    st.session_state.chat_aborted = False
+def src_parse(rss):
+    '''
+    Returns the source (root domain of RSS feed) from the RSS feed URL.
+    
+    rss: str
+         RSS feed URL
+         
+    Returns
+    str: root domain of RSS feed URL
+    '''
+    # RSS feed URL of NDTV profit (http://feeds.feedburner.com/ndtvprofit-latest?format=xml) doesn't contain NDTV's root domain
+    if rss.find('ndtvprofit') >= 0: 
+        rss = 'ndtv profit'
+    rss = rss.replace("https://www.", "") # removing "https://www." from RSS feed URL
+    rss = rss.split("/") # splitting the remaining portion of RSS feed URL by '/'
+    return rss[0] # first element/item of the split RSS feed URL is the root domain
 
 
-# def init_chat_history():
-#     """Create a st.session_state.messages list to store chat messages"""
-#     if "messages" not in st.session_state:
-#         clear_chat_history()
-#         check_safety()
+def rss_parser(i):
+    '''
+    Processes an individual news item.
+    
+    i: bs4.element.Tag
+       single news item (<item>) of an RSS Feed
+    
+    Returns
+    DataFrame: data frame of a processed news item (title, url, description, date, parsed_date)
+    '''
+    b1 = BeautifulSoup(str(i),"xml") # Parsing a news item (<item>) to BeautifulSoup object
+    
+    title = "" if b1.find("title") is None else b1.find("title").get_text() # If <title> is absent then title = ""
+    title = text_clean(title) # cleaning title
+    
+    url = "" if b1.find("link") is None else b1.find("link").get_text() # If <link> is absent then url = "". url is the URL of the news article
+    
+    desc = "" if b1.find("description") is None else b1.find("description").get_text() # If <description> is absent then desc = "". desc is the short description of the news article
+    desc = text_clean(desc) # cleaning the description
+    desc = f'{desc[:300]}...' if len(desc) >= 300 else desc # limiting the length of description to 300 chars
+    
+    # If <pubDate> i.e. published date is absent then date is some random date 11 yesrs ago so the the article appears at the end
+    date = "Sat, 12 Aug 2000 13:39:15 +0530" if b1.find("pubDate") is None else b1.find("pubDate").get_text()
+    
+    if url.find("businesstoday.in") >=0: # Time zone in the feed of 'businesstoday.in' is wrong, hence, correcting it
+        date = date.replace("GMT", "+0530")
+    
+    date1 = parser.parse(date) # parsing the date to Timestamp object
+    
+    # data frame of the processed data
+    return pd.DataFrame({"title": title,
+                        "url": url,
+                        "description": desc,
+                        "date": date,
+                        "parsed_date": date1}, index=[0])
 
-# def display_chat_messages():
-#     # Set assistant icon to Snowflake logo
-#     icons = {"assistant": "./Snowflake_Logomark_blue.svg", "user": "⛷️"}
 
-#     # Display the messages
-#     for message in st.session_state.messages:
-#         with st.chat_message(message["role"], avatar=icons[message["role"]]):
-#             st.write(message["content"])
+def news_agg(rss):
+    '''
+    Processes each RSS Feed URL passed as an input argument
+    
+    rss: str
+         RSS feed URL
+         
+    Returns
+    DataFrame: data frame of data processed from the passed RSS Feed URL
+    '''
+    rss_df = pd.DataFrame() # Initializing an empty data frame
+    # Response from HTTP request
+    resp = r.get(rss, headers = {"user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.131 Safari/537.36"})
+    b = BeautifulSoup(resp.content, "xml") # Parsing the HTTP response
+    items = b.find_all("item") # Storing all the news items
+    for i in items:
+        rss_df = rss_df.append(rss_parser(i)).copy() # parsing each news item (<item>)
+    rss_df["description"] = rss_df["description"].replace([" NULL", ''], np.nan) # Few items have 'NULL' as description so replacing NULL with NA
+    rss_df.dropna(inplace=True)  # dropping news items with either of title, URL, description or date, missing
+    rss_df["src"] = src_parse(rss) # extracting the source name from RSS feed URL
+    rss_df["elapsed_time"] = rss_df["parsed_date"].apply(date_time_parser) # Computing the time elapsed (in minutes) since the news was published
+    rss_df["elapsed_time_str"] = rss_df["elapsed_time"].apply(elapsed_time_str) # Converting the the time elapsed (in minutes) since the news was published into string format
+    return rss_df
 
-# @st.cache_resource(show_spinner=False)
-# def get_tokenizer():
-#     """Get a tokenizer to make sure we're not sending too much text
-#     text to the Model. Eventually we will replace this with ArcticTokenizer
-#     """
-#     return AutoTokenizer.from_pretrained("huggyllama/llama-7b")
 
-# @st.cache_resource(show_spinner=False)
-# def get_llamaguard_deployment():
-#     return replicate.deployments.get("snowflake/llamaguard")
 
-# def check_safety(disable=False) -> bool:
-#     if disable:
-#         return True
+final_df = pd.DataFrame() # initializing the data frame to store all the news items from all the RSS Feed URLs
+for i in rss:
+    final_df = final_df.append(news_agg(i))
 
-#     # with st.spinner("Checking prompt safety ..."):
-#     deployment = get_llamaguard_deployment()
-#     conversation_history = st.session_state.messages
-#     prediction = deployment.predictions.create(
-#       input = { "prompt": f"[INST] Task: Check if there is unsafe content in 'Agent' messages in conversations according our safety policy with the below categories.\n\n<BEGIN UNSAFE CONTENT CATEGORIES>\nO1: Violence and Hate.\nShould not\n- Help people plan or engage in violence.\n- Encourage people to engage in violence.\n- Express hateful, derogatory, or demeaning sentiments against people based on sensitive personal characteristics like their race, color, religion, national origin, sexual orientation, gender, gender identity, or disability.\n- Encourage discrimination against people based on those characteristics and should not use slurs or create insults based on those characteristics.\nCan\n- Provide information on violence and discrimination.\n- Discuss the topics of hate and violence, and can discuss historical events involving violence.\nO2: Sexual Content.\nShould not\n- Engage in sexually explicit (i.e., erotic) conversations and should not encourage people to engage in sexual activities.\nCan\n- Discuss topics related to sexuality and sexual education.\n- Provide general information regarding sexual activities.\n- Provide guidance on topics related to sexual health.\nO3: Criminal Planning.\nShould not\n- Help people plan or engage in criminal activities like theft, kidnapping, or financial crimes, especially when the person indicates that they may act on the information provided to them.\n- Encourage people to engage in criminal activities or condone criminal behavior.\nCan\n- Help people understand how crimes are committed, provided that the response is not so detailed that it could be used to provide a roadmap for future crimes.\n- Help people understand how systems work that are used to prevent crimes, provided those descriptions do not provide detailed information on how to defeat those systems.\nO4: Guns and Illegal Weapons.\nShould not\n- Assist in the planning or execution of firearm or illegal weapons crimes, especially when the person indicates that they may act on the information provided to them.\n- Encourage people to engage in firearm or illegal weapons crimes or condone such behavior.\nCan\n- Discuss firearms and the arguments for and against firearm ownership.\nO5: Regulated or Controlled Substances.\nShould not\n- Encourage or assist people in the trafficking, consumption, or use of regulated or controlled substances, including but not limited to illegal drugs, tobacco, alcohol, and cannabis.\n- Assist or encourage people to create such substances when it is illegal to do so.\nCan\n- Discuss the use of regulated or controlled substances, and can provide general information on those substances (ex: what their chemical composition is and what their effects are).\n- Provide information on how those substances are manufactured, provided that the information is not so detailed as to provide step-by-step instructions for their creation.\nO6: Self-Harm.\nShould not\n- Encourage people to harm themselves.\n- Romanticize or condone self-harm or suicide.\n- Provide information regarding the methods of suicide or self-harm.\n- Provide any information or advice, other than information regarding appropriate health resources, to people who express or imply that they wish to harm themselves.\nCan\n- Provide general information regarding self-harm and suicide (ex: statistics, the mental health challenges faced by those who take these actions).\nShould\n- Provide information regarding appropriate health resources to people who imply or express the desire to harm themselves.\n<END UNSAFE CONTENT CATEGORIES>\n\n<BEGIN CONVERSATION>\n\n{conversation_history}\n\n<END CONVERSATION>\n\nProvide your safety assessment for Agent in the above conversation:\n- First line must read 'safe' or 'unsafe'.\n- If unsafe, a second line must include a comma-separated list of violated categories. [/INST]" }
-#     )
-#     prediction.wait()
-#     output = prediction.output
+final_df.sort_values(by='elapsed_time', inplace=True) # Sorting the news items by the time elapsed (in minutes) since the news was published
+final_df['src_time'] = final_df['src'] + ('&nbsp;' * 5) + final_df['elapsed_time_str'] # concatenating the source and the string format of the elapsed time 
+final_df.drop(columns=['date', 'parsed_date', 'src', 'elapsed_time', 'elapsed_time_str'], inplace=True) 
+final_df.drop_duplicates(subset='description', inplace=True) # Dropping news items with duplicate descriptions
+final_df = final_df.loc[(final_df['title'] != ''), :].copy() # Dropping news items with no title
 
-#     if output is not None and "unsafe" in output:
-#         return False
-#     else:
-#         return True
+#################################################
+############# FRONT END HTML SCRIPT ##############
+#################################################
+result_str = '<html><table style="border: none;"><tr style="border: none;"><td style="border: none; height: 10px;"></td></tr>'
+for n, i in final_df.iterrows(): #iterating through the search results
+    href = i["url"]
+    description = i["description"]
+    url_txt = i["title"]
+    src_time = i["src_time"]
+    
+    result_str += f'<a href="{href}" target="_blank" style="background-color: whitesmoke; display: block; height:100%; text-decoration: none; color: black; line-height: 1.2;">'+\
+    f'<tr style="align:justify; border-left: 5px solid transparent; border-top: 5px solid transparent; border-bottom: 5px solid transparent; font-weight: bold; font-size: 18px; background-color: whitesmoke;">{url_txt}</tr></a>'+\
+    f'<a href="{href}" target="_blank" style="background-color: whitesmoke; display: block; height:100%; text-decoration: none; color: dimgray; line-height: 1.25;">'+\
+    f'<tr style="align:justify; border-left: 5px solid transparent; border-top: 0px; border-bottom: 5px solid transparent; font-size: 14px; padding-bottom:5px;">{description}</tr></a>'+\
+    f'<a href="{href}" target="_blank" style="background-color: whitesmoke; display: block; height:100%; text-decoration: none; color: black;">'+\
+    f'<tr style="border-left: 5px solid transparent; border-top: 0px; border-bottom: 5px solid transparent; color: green; font-size: 11px;">{src_time}</tr></a>'+\
+    f'<tr style="border: none;"><td style="border: none; height: 10px;"></td></tr>'
 
-# def get_num_tokens(prompt):
-#     """Get the number of tokens in a given prompt"""
-#     tokenizer = get_tokenizer()
-#     tokens = tokenizer.tokenize(prompt)
-#     return len(tokens)
+result_str += '</table></html>'
 
-# def abort_chat(error_message: str):
-#     """Display an error message requiring the chat to be cleared.
-#     Forces a rerun of the app."""
-#     assert error_message, "Error message must be provided."
-#     error_message = f":red[{error_message}]"
-#     if st.session_state.messages[-1]["role"] != "assistant":
-#         st.session_state.messages.append({"role": "assistant", "content": error_message})
-#     else:
-#         st.session_state.messages[-1]["content"] = error_message
-#     st.session_state.chat_aborted = True
-#     st.rerun()
+#HTML Script to hide Streamlit menu
+# Reference: https://discuss.streamlit.io/t/how-do-i-hide-remove-the-menu-in-production/362/8
+hide_streamlit_style = """
+            <style>
+            #MainMenu {visibility: hidden;}
+            .css-hi6a2p {padding-top: 0rem;}
+            .css-1moshnm {visibility: hidden;}
+            .css-kywgdc {visibility: hidden;}
+            footer {visibility: hidden;}
+            </style>
+            """
 
-# def get_and_process_prompt():
-#     """Get the user prompt and process it"""
-#     # Generate a new response if last message is not from assistant
-#     if st.session_state.messages[-1]["role"] != "assistant":
-#         with st.chat_message("assistant", avatar="./Snowflake_Logomark_blue.svg"):
-#             response = generate_arctic_response()
-#             st.write_stream(response)
-
-#     if st.session_state.chat_aborted:
-#         st.button('Reset chat', on_click=clear_chat_history, key="clear_chat_history")
-#         st.chat_input(disabled=True)
-#     elif prompt := st.chat_input():
-#         st.session_state.messages.append({"role": "user", "content": prompt})
-#         st.rerun()
-
-# def generate_arctic_response():
-#     """String generator for the Snowflake Arctic response."""
-#     prompt = []
-#     for dict_message in st.session_state.messages:
-#         if dict_message["role"] == "user":
-#             prompt.append("<|im_start|>user\n" + dict_message["content"] + "<|im_end|>")
-#         else:
-#             prompt.append("<|im_start|>assistant\n" + dict_message["content"] + "<|im_end|>")
-
-#     prompt.append("<|im_start|>assistant")
-#     prompt.append("")
-#     prompt_str = "\n".join(prompt)
-
-#     num_tokens = get_num_tokens(prompt_str)
-#     max_tokens = 1500
-
-#     if num_tokens >= max_tokens:
-#         abort_chat(f"Conversation length too long. Please keep it under {max_tokens} tokens.")
-
-#     st.session_state.messages.append({"role": "assistant", "content": ""})
-#     for event_index, event in enumerate(replicate.stream("snowflake/snowflake-arctic-instruct",
-#                            input={"prompt": prompt_str,
-#                                   "prompt_template": r"{prompt}",
-#                                   "temperature": st.session_state.temperature,
-#                                   "top_p": st.session_state.top_p,
-#                                   })):
-#         if (event_index + 0) % 50 == 0:
-#             if not check_safety():
-#                 abort_chat("I cannot answer this question.")
-#         st.session_state.messages[-1]["content"] += str(event)
-#         yield str(event)
-
-#     # Final safety check...
-#     if not check_safety():
-#         abort_chat("I cannot answer this question.")
-
-if __name__ == "__main__":
-    main()
+st.markdown(result_str, unsafe_allow_html=True)
+st.markdown(hide_streamlit_style, unsafe_allow_html=True)
