@@ -212,6 +212,9 @@ def news_agg(rss):
     rss_data = [rss_parser(i) for i in items]
 
     # Concatenate all DataFrames at once
+    if rss_data == []:
+        return pd.DataFrame()
+    
     rss_df = pd.concat(rss_data, ignore_index=True)
 
     # Clean and process the DataFrame
