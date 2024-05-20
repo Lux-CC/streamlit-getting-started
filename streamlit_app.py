@@ -428,6 +428,7 @@ def main():
         if query:
             top_5_docs = get_top_5_documents(query, all_news)
             st.subheader("Answer")
+            show_answer(top_5_docs, query)
             st.write(top_5_docs)
 
     else:
