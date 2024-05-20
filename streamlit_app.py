@@ -2,7 +2,11 @@ import streamlit as st
 import replicate
 import os
 from transformers import AutoTokenizer
-
+# import plotly.express as px
+import pandas as pd
+import plotly.graph_objects as go
+import numpy as np
+ 
 # App title
 st.set_page_config(page_title="Lux's App")
 
@@ -14,6 +18,19 @@ def main():
       st.write('This code will be printed')
 
     st.write('Hello, *World!* :sunglasses:')
+    r, theta = np.meshgrid(np.linspace(0, 1, 10), np.linspace(0, 360, 18))
+
+    fig = go.Figure(go.Barpolar(
+        r= r.flatten(),
+        theta=theta.flatten(),
+        marker_color=(r.flatten())**2-0.2, #marker_color is a function of radius
+        marker_colorscale="viridis", marker_colorbar_thickness=24,
+        marker_cmin=0, marker_cmax=1))
+    fig.update_layout(width=500, height=500)
+    fig.show()
+
+
+
 
     # init_chat_history()
     # display_chat_messages()
@@ -43,6 +60,8 @@ def display_sidebar_ui():
 def clear_chat_history():
     st.session_state.messages = [{"role": "assistant", "content": "Hi. I'm Arctic, a new, efficient, intelligent, and truly open language model created by Snowflake AI Research. Ask me anything."}]
     st.session_state.chat_aborted = False
+
+
 
 # def init_chat_history():
 #     """Create a st.session_state.messages list to store chat messages"""

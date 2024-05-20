@@ -1,3 +1,6 @@
 streamlit
 replicate
 transformers
+plotly
+pandas
+numpy
