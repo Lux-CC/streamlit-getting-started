@@ -25,7 +25,6 @@ def generate_embeddings(query, documents):
     model = SentenceTransformer("Snowflake/snowflake-arctic-embed-l")
 
     queries = [query]
-    documents = ['The Data Cloud!', 'Mexico City of Course!']
 
     query_embeddings = model.encode(queries, prompt_name="query")
     document_embeddings = model.encode(documents)
