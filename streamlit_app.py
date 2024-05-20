@@ -286,9 +286,10 @@ def summarize_article(paragraph_list):
     num_tokens = 0
     for paragraph in paragraph_list:
         num_tokens += get_num_tokens(paragraph)
+        st.write(paragraph)
         if num_tokens > 1500:
             # summarize and restart the loop
-            summary_tokens = summary_tokens.extend(
+            summary_tokens.extend(
                 [token for token in arctic_summary(text_to_summarize)]
             )
             text_to_summarize = paragraph
