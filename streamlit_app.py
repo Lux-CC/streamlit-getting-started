@@ -39,8 +39,9 @@ def get_num_tokens(prompt):
 
 
 def arctic_summary(text):
-    st.write(text)
     st.write(get_num_tokens(text))
+
+
     for event_index, event in enumerate(
         replicate.stream(
             "snowflake/snowflake-arctic-instruct",
@@ -280,9 +281,23 @@ def news_agg(rss):
 
 
 # Summarization function
-def summarize_article(description):
-    summary = arctic_summary(description)
-    return "".join([token for token in summary])
+def summarize_article(paragraph_list):
+    text_to_summarize = ""
+    summary_tokens = []
+    num_tokens = 0
+    for paragraph in paragraph_list:
+        num_tokens += get_num_tokens(paragraph)
+        if num_tokens > 1500:
+            # summarize and restart the loop
+            summary_tokens = summary_tokens.extend([token for token in arctic_summary(text_to_summarize)])
+            text_to_summarize = paragraph
+            num_tokens = get_num_tokens(paragraph)
+        else:
+            text_to_summarize += paragraph        
+
+    summary_tokens = summary_tokens.extend([token for token in arctic_summary(text_to_summarize)])
+    total_summary_tokens = arctic_summary("".join(summary_tokens))
+    return "".join([token for token in total_summary_tokens])
 
 
 # Fetch and parse webpage content
@@ -299,7 +314,7 @@ def fetch_webpage_summary(url):
 
         # Extract main content (this might need to be adjusted based on the webpage structure)
         paragraphs = soup.find_all("p")
-        content = " ".join([para.get_text() for para in paragraphs])
+        content = [para.get_text() for para in paragraphs]
 
         # Summarize the extracted content
         summary = summarize_article(content)
