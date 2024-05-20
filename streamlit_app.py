@@ -269,7 +269,7 @@ def news_agg(rss):
 # Summarization function
 def summarize_article(description):
     summary = arctic_summary(description)
-    return summary[0]['summary_text']
+    return summary
 
 
 # Use a text_input to get the keywords to filter the dataframe
