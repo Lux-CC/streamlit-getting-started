@@ -270,7 +270,7 @@ def news_agg(rss):
 # Summarization function
 def summarize_article(description):
     summary = arctic_summary(description)
-    return [token for token in summary]
+    return "".join([token for token in summary])
 
 
 # Use a text_input to get the keywords to filter the dataframe
