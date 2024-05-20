@@ -284,6 +284,7 @@ def summarize_article(paragraph_list):
     text_to_summarize = ""
     summary_tokens = []
     num_tokens = 0
+    st.write(paragraph_list)
     for paragraph in paragraph_list:
         num_tokens += get_num_tokens(paragraph)
         st.write(paragraph)
