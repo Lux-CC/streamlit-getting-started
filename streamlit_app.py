@@ -296,6 +296,7 @@ def summarize_article(paragraph_list):
             text_to_summarize += paragraph        
 
     summary_tokens = summary_tokens.extend([token for token in arctic_summary(text_to_summarize)])
+    st.write(summary_tokens)
     total_summary_tokens = arctic_summary("".join(summary_tokens))
     return "".join([token for token in total_summary_tokens])
 
