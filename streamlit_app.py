@@ -18,12 +18,14 @@ rss_feeds = [
 # Set Replicate API token
 os.environ["REPLICATE_API_TOKEN"] = st.secrets["REPLICATE_API_TOKEN"]
 
+
 @st.cache_resource(show_spinner=False)
 def get_tokenizer():
     """
     Get a tokenizer to ensure the text sent to the model is not too long.
     """
     return AutoTokenizer.from_pretrained("huggyllama/llama-7b")
+
 
 def get_num_tokens(prompt):
     """
@@ -38,6 +40,7 @@ def get_num_tokens(prompt):
     tokenizer = get_tokenizer()
     tokens = tokenizer.tokenize(prompt)
     return len(tokens)
+
 
 def arctic_summary(text):
     """
@@ -65,6 +68,7 @@ def arctic_summary(text):
                 st.write("I cannot answer this question.")
         yield str(event)
 
+
 def check_safety(text) -> bool:
     """
     Check the safety of the text.
@@ -78,6 +82,7 @@ def check_safety(text) -> bool:
     # For now, always return True
     return True
 
+
 def date_time_parser(dt):
     """
     Calculate the time elapsed since the news was published.
@@ -89,6 +94,7 @@ def date_time_parser(dt):
         int: The time elapsed in minutes.
     """
     return int(np.round((dt.now(dt.tz) - dt).total_seconds() / 60, 0))
+
 
 def elapsed_time_str(mins):
     """
@@ -127,6 +133,7 @@ def elapsed_time_str(mins):
             time_str = "a minute ago"
     return time_str
 
+
 def text_clean(desc):
     """
     Clean the text by removing unparsed HTML characters.
@@ -146,6 +153,7 @@ def text_clean(desc):
     desc = desc.replace("#32;", " ")
     return desc
 
+
 def src_parse(rss):
     """
     Extract the source domain from the RSS feed URL.
@@ -161,6 +169,7 @@ def src_parse(rss):
     rss = rss.replace("https://www.", "")
     rss = rss.split("/")
     return rss[0]
+
 
 def rss_parser(item):
     """
@@ -179,17 +188,25 @@ def rss_parser(item):
     desc = "" if b1.find("description") is None else b1.find("description").get_text()
     desc = text_clean(desc)
     desc = f"{desc[:300]}..." if len(desc) >= 300 else desc
-    date = "Sat, 12 Aug 2000 13:39:15 +0530" if b1.find("pubDate") is None else b1.find("pubDate").get_text()
+    date = (
+        "Sat, 12 Aug 2000 13:39:15 +0530"
+        if b1.find("pubDate") is None
+        else b1.find("pubDate").get_text()
+    )
     if url.find("businesstoday.in") >= 0:
         date = date.replace("GMT", "+0530")
     date1 = parser.parse(date)
-    return pd.DataFrame({
-        "title": title,
-        "url": url,
-        "description": desc,
-        "date": date,
-        "parsed_date": date1,
-    }, index=[0])
+    return pd.DataFrame(
+        {
+            "title": title,
+            "url": url,
+            "description": desc,
+            "date": date,
+            "parsed_date": date1,
+        },
+        index=[0],
+    )
+
 
 def news_agg(rss):
     """
@@ -220,6 +237,7 @@ def news_agg(rss):
         st.error(f"Error fetching RSS feed: {e}")
         return pd.DataFrame()
 
+
 def summarize_article(paragraph_list):
     """
     Summarize the article from a list of paragraphs.
@@ -238,7 +256,9 @@ def summarize_article(paragraph_list):
         num_tokens += get_num_tokens(paragraph)
         st.write(paragraph)
         if num_tokens > 1500:
-            summary_tokens.extend([token for token in arctic_summary(text_to_summarize)])
+            summary_tokens.extend(
+                [token for token in arctic_summary(text_to_summarize)]
+            )
             text_to_summarize = paragraph
             num_tokens = get_num_tokens(paragraph)
         else:
@@ -247,6 +267,7 @@ def summarize_article(paragraph_list):
     st.write(summary_tokens)
     total_summary_tokens = arctic_summary("".join(summary_tokens))
     return "".join([token for token in total_summary_tokens])
+
 
 def fetch_webpage_summary(url):
     """
@@ -272,6 +293,7 @@ def fetch_webpage_summary(url):
     except r.exceptions.RequestException as e:
         st.error(f"Error fetching webpage content: {e}")
         return ""
+
 
 def main():
     """
@@ -299,6 +321,7 @@ def main():
                 st.write(summary)
     else:
         st.write("No news available from the provided RSS feeds.")
+
 
 if __name__ == "__main__":
     main()
