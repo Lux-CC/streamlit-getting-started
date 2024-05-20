@@ -9,7 +9,6 @@ import streamlit as st
 from transformers import AutoTokenizer
 import replicate
 from sentence_transformers import SentenceTransformer
-from typing import List
 
 
 # List of RSS feeds to fetch
