@@ -269,7 +269,6 @@ def news_agg(rss):
 
 # Summarization function
 def summarize_article(description):
-    summarizer = pipeline("summarization")
     summary = arctic_summary(description)
     return summary[0]['summary_text']
 
