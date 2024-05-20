@@ -273,49 +273,48 @@ def summarize_article(description):
     return summary[0]['summary_text']
 
 
-def main():
-    # Use a text_input to get the keywords to filter the dataframe
-    text_search = st.text_input("Search feed", value="")
-    dataframes = [news_agg(i) for i in rss]
-    final_df = pd.concat(dataframes, ignore_index=True)
+# Use a text_input to get the keywords to filter the dataframe
+text_search = st.text_input("Search feed", value="")
+dataframes = [news_agg(i) for i in rss]
+final_df = pd.concat(dataframes, ignore_index=True)
 
-    # Sort the DataFrame by 'elapsed_time'
-    final_df.sort_values(by="elapsed_time", inplace=True)
+# Sort the DataFrame by 'elapsed_time'
+final_df.sort_values(by="elapsed_time", inplace=True)
 
-    # Concatenate 'src' and 'elapsed_time_str' into a new column 'src_time'
-    final_df["src_time"] = final_df["src"] + ("&nbsp;" * 5) + final_df["elapsed_time_str"]
+# Concatenate 'src' and 'elapsed_time_str' into a new column 'src_time'
+final_df["src_time"] = final_df["src"] + ("&nbsp;" * 5) + final_df["elapsed_time_str"]
 
-    # Drop unnecessary columns
-    final_df.drop(
-        columns=["date", "parsed_date", "src", "elapsed_time", "elapsed_time_str"],
-        inplace=True,
+# Drop unnecessary columns
+final_df.drop(
+    columns=["date", "parsed_date", "src", "elapsed_time", "elapsed_time_str"],
+    inplace=True,
+)
+
+# Drop duplicate descriptions
+final_df.drop_duplicates(subset="description", inplace=True)
+
+# Filter out rows where 'title' is empty and create a copy
+final_df = final_df.loc[final_df["title"] != "", :].copy()
+# #################################################
+# ############# FRONT END HTML SCRIPT ##############
+# #################################################
+for n, i in final_df.iterrows():
+    href = i["url"]
+    description = i["description"]
+    url_txt = i["title"]
+    src_time = i["src_time"]
+
+    st.markdown(
+        f"""
+    <div style="border:1px solid #ddd; padding: 10px; margin: 10px 0; border-radius: 5px;">
+        <h3 style="margin-bottom: 5px;"><a href="{href}" target="_blank" style="text-decoration: none; color: #007bff;">{url_txt}</a></h3>
+        <p style="margin-bottom: 5px;">{description}</p>
+        <p style="color: #6c757d; font-size: 0.9em;">{src_time}</p>
+    </div>
+    """,
+        unsafe_allow_html=True,
     )
-
-    # Drop duplicate descriptions
-    final_df.drop_duplicates(subset="description", inplace=True)
-
-    # Filter out rows where 'title' is empty and create a copy
-    final_df = final_df.loc[final_df["title"] != "", :].copy()
-    # #################################################
-    # ############# FRONT END HTML SCRIPT ##############
-    # #################################################
-    for n, i in final_df.iterrows():
-        href = i["url"]
-        description = i["description"]
-        url_txt = i["title"]
-        src_time = i["src_time"]
-
-        st.markdown(
-            f"""
-        <div style="border:1px solid #ddd; padding: 10px; margin: 10px 0; border-radius: 5px;">
-            <h3 style="margin-bottom: 5px;"><a href="{href}" target="_blank" style="text-decoration: none; color: #007bff;">{url_txt}</a></h3>
-            <p style="margin-bottom: 5px;">{description}</p>
-            <p style="color: #6c757d; font-size: 0.9em;">{src_time}</p>
-        </div>
-        """,
-            unsafe_allow_html=True,
-        )
-        # Add a button to summarize the article
-        if st.button(f"Summarize Article {n+1}"):
-            summary = summarize_article(description)
-            st.write(f"**Summary:** {summary}")
+    # Add a button to summarize the article
+    if st.button(f"Summarize Article {n+1}"):
+        summary = summarize_article(description)
+        st.write(f"**Summary:** {summary}")
