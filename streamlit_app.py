@@ -46,6 +46,7 @@ def arctic_summary(text):
             input={
                 "prompt": text,
                 "prompt_template": r"Note the following release webpage: {prompt}. Summarize the core content of this release article.",
+                "max_new_tokens": 512,
                 #   "temperature": st.session_state.temperature,
                 #   "top_p": st.session_state.top_p,
             },
