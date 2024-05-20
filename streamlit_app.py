@@ -259,36 +259,19 @@ final_df
 # #################################################
 # ############# FRONT END HTML SCRIPT ##############
 # #################################################
-# result_str = '<html><table style="border: none;"><tr style="border: none;"><td style="border: none; height: 10px;"></td></tr>'
-# for n, i in final_df.iterrows():  # iterating through the search results
-#     href = i["url"]
-#     description = i["description"]
-#     url_txt = i["title"]
-#     src_time = i["src_time"]
+for n, i in final_df.iterrows():
+    href = i["url"]
+    description = i["description"]
+    url_txt = i["title"]
+    src_time = i["src_time"]
+    
+    st.markdown(f"""
+    <div style="border:1px solid #ddd; padding: 10px; margin: 10px 0; border-radius: 5px;">
+        <h3 style="margin-bottom: 5px;"><a href="{href}" target="_blank" style="text-decoration: none; color: #007bff;">{url_txt}</a></h3>
+        <p style="margin-bottom: 5px;">{description}</p>
+        <p style="color: #6c757d; font-size: 0.9em;">{src_time}</p>
+    </div>
+    """, unsafe_allow_html=True)
 
-#     result_str += (
-#         f'<a href="{href}" target="_blank" style="background-color: whitesmoke; display: block; height:100%; text-decoration: none; color: black; line-height: 1.2;">'
-#         + f'<tr style="align:justify; border-left: 5px solid transparent; border-top: 50px solid transparent; border-bottom: 5px solid transparent; font-weight: bold; font-size: 18px; background-color: whitesmoke;">{url_txt}</tr></a>'
-#         + f'<a href="{href}" target="_blank" style="background-color: whitesmoke; display: block; height:100%; text-decoration: none; color: dimgray; line-height: 1.25;">'
-#         + f'<tr style="align:justify; border-left: 5px solid transparent; border-top: 0px; border-bottom: 5px solid transparent; font-size: 14px; padding-bottom:5px;">{description}</tr></a>'
-#         + f'<a href="{href}" target="_blank" style="background-color: whitesmoke; display: block; height:100%; text-decoration: none; color: black;">'
-#         + f'<tr style="border-left: 5px solid transparent; border-top: 0px; border-bottom: 5px solid transparent; color: green; font-size: 11px;">{src_time}</tr></a>'
-#         + f'<tr style="border: none;"><td style="border: none; height: 10px;"></td></tr>'
-#     )
-
-# result_str += "</table></html>"
-
-# # HTML Script to hide Streamlit menu
-# # Reference: https://discuss.streamlit.io/t/how-do-i-hide-remove-the-menu-in-production/362/8
-# hide_streamlit_style = """
-#             <style>
-#             #MainMenu {visibility: hidden;}
-#             .css-hi6a2p {padding-top: 0rem;}
-#             .css-1moshnm {visibility: hidden;}
-#             .css-kywgdc {visibility: hidden;}
-#             footer {visibility: hidden;}
-#             </style>
-#             """
-
-# st.markdown(result_str, unsafe_allow_html=True)
-# st.markdown(hide_streamlit_style, unsafe_allow_html=True)
+    # Divider
+    st.markdown("<hr style='border: 0; border-top: 1px solid #ddd;'>", unsafe_allow_html=True)
