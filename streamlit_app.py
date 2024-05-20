@@ -23,7 +23,7 @@ os.environ["REPLICATE_API_TOKEN"] = st.secrets["REPLICATE_API_TOKEN"]
 
 
 def generate_embeddings(query, documents: List[str]):
-    model = SentenceTransformer("Snowflake/snowflake-arctic-embed-l")
+    model = SentenceTransformer("snowflake/snowflake-arctic-embed-l")
 
     queries = [query]
 
