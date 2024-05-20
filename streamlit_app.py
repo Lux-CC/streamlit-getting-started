@@ -278,17 +278,17 @@ for n, i in final_df.iterrows():  # iterating through the search results
 
 result_str += "</table></html>"
 
-# HTML Script to hide Streamlit menu
-# Reference: https://discuss.streamlit.io/t/how-do-i-hide-remove-the-menu-in-production/362/8
-hide_streamlit_style = """
-            <style>
-            #MainMenu {visibility: hidden;}
-            .css-hi6a2p {padding-top: 0rem;}
-            .css-1moshnm {visibility: hidden;}
-            .css-kywgdc {visibility: hidden;}
-            footer {visibility: hidden;}
-            </style>
-            """
+# # HTML Script to hide Streamlit menu
+# # Reference: https://discuss.streamlit.io/t/how-do-i-hide-remove-the-menu-in-production/362/8
+# hide_streamlit_style = """
+#             <style>
+#             #MainMenu {visibility: hidden;}
+#             .css-hi6a2p {padding-top: 0rem;}
+#             .css-1moshnm {visibility: hidden;}
+#             .css-kywgdc {visibility: hidden;}
+#             footer {visibility: hidden;}
+#             </style>
+#             """
 
 st.markdown(result_str, unsafe_allow_html=True)
-st.markdown(hide_streamlit_style, unsafe_allow_html=True)
+# st.markdown(hide_streamlit_style, unsafe_allow_html=True)
