@@ -294,6 +294,33 @@ def fetch_webpage_summary(url):
         st.error(f"Error fetching webpage content: {e}")
         return ""
 
+def show_news(news_df):
+    """
+    Show the news feed in a table.
+
+    Args:
+        news_df (DataFrame): The data frame containing the news feed.
+    """
+    for n, i in news_df.iterrows():
+        href = i["url"]
+        description = i["description"]
+        url_txt = i["title"]
+        src_time = i["src_time"]
+    
+        st.markdown(
+            f"""
+        <div style="border:1px solid #ddd; padding: 10px; margin: 10px 0; border-radius: 5px;">
+            <h3 style="margin-bottom: 5px;"><a href="{href}" target="_blank" style="text-decoration: none; color: #007bff;">{url_txt}</a></h3>
+            <p style="margin-bottom: 5px;">{description}</p>
+            <p style="color: #6c757d; font-size: 0.9em;">{src_time}</p>
+        </div>
+        """,
+            unsafe_allow_html=True,
+        )
+        # Add a button to summarize the article
+        if st.button(f"Summarize Article {n+1}"):
+            summary = fetch_webpage_summary(href)
+            st.write(f"**Summary:** {summary}")
 
 def main():
     """
@@ -308,12 +335,14 @@ def main():
     for feed in rss_feeds:
         feed_data = news_agg(feed)
         all_news = pd.concat([all_news, feed_data], ignore_index=True)
+        all_news.sort_values(by="elapsed_time", inplace=True)
+
 
     if not all_news.empty:
         st.subheader("Aggregated News Feed")
-        st.write(all_news)
+        show_news(all_news)
 
-        news_url = st.text_input("Enter the URL of the news article to summarize:")
+        news_url = st.text_input("Ask a question about the news")
         if news_url:
             summary = fetch_webpage_summary(news_url)
             if summary:
