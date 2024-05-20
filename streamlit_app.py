@@ -174,15 +174,23 @@ def news_agg(rss):
 
 
 
-final_df = pd.DataFrame() # initializing the data frame to store all the news items from all the RSS Feed URLs
-for i in rss:
-    final_df = final_df.append(news_agg(i))
+dataframes = [news_agg(i) for i in rss]
+final_df = pd.concat(dataframes, ignore_index=True)
 
-final_df.sort_values(by='elapsed_time', inplace=True) # Sorting the news items by the time elapsed (in minutes) since the news was published
-final_df['src_time'] = final_df['src'] + ('&nbsp;' * 5) + final_df['elapsed_time_str'] # concatenating the source and the string format of the elapsed time 
-final_df.drop(columns=['date', 'parsed_date', 'src', 'elapsed_time', 'elapsed_time_str'], inplace=True) 
-final_df.drop_duplicates(subset='description', inplace=True) # Dropping news items with duplicate descriptions
-final_df = final_df.loc[(final_df['title'] != ''), :].copy() # Dropping news items with no title
+# Sort the DataFrame by 'elapsed_time'
+final_df.sort_values(by='elapsed_time', inplace=True)
+
+# Concatenate 'src' and 'elapsed_time_str' into a new column 'src_time'
+final_df['src_time'] = final_df['src'] + ('&nbsp;' * 5) + final_df['elapsed_time_str']
+
+# Drop unnecessary columns
+final_df.drop(columns=['date', 'parsed_date', 'src', 'elapsed_time', 'elapsed_time_str'], inplace=True)
+
+# Drop duplicate descriptions
+final_df.drop_duplicates(subset='description', inplace=True)
+
+# Filter out rows where 'title' is empty and create a copy
+final_df = final_df.loc[final_df['title'] != '', :].copy()
 
 #################################################
 ############# FRONT END HTML SCRIPT ##############
