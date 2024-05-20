@@ -5,7 +5,7 @@ import requests as r
 import regex as re
 from dateutil import parser
 import streamlit as st
-from transformers import pipeline, AutoTokenizer
+from transformers import AutoTokenizer
 import replicate
 import os
 
