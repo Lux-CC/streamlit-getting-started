@@ -22,24 +22,33 @@ rss_feeds = [
 os.environ["REPLICATE_API_TOKEN"] = st.secrets["REPLICATE_API_TOKEN"]
 
 
-def generate_embeddings(query, documents: List[str]):
+def get_top_5_documents(query, df):
     model = SentenceTransformer("snowflake/snowflake-arctic-embed-l")
-
-    queries = [query]
-
-    query_embeddings = model.encode(queries, prompt_name="query")
-    document_embeddings = model.encode(documents)
-
-    scores = query_embeddings @ document_embeddings.T
-    for query, query_scores in zip(queries, scores):
-        doc_score_pairs = list(zip(documents, query_scores))
-        doc_score_pairs = sorted(doc_score_pairs, key=lambda x: x[1], reverse=True)
-        # Output passages & scores
-        st.write("Query:", query)
-        for document, score in doc_score_pairs:
-            st.write(score, document)
     
-    return [(query, query_scores) for query, query_scores in zip(queries, scores)]
+    # Extracting the descriptions from the dataframe
+    documents = df['description'].tolist()
+    
+    # Encode the query and documents
+    query_embeddings = model.encode([query], prompt_name="query")
+    document_embeddings = model.encode(documents)
+    
+    # Compute the scores
+    scores = query_embeddings @ document_embeddings.T
+    
+    # Zip scores with documents and sort
+    doc_score_pairs = list(zip(documents, scores[0]))
+    doc_score_pairs = sorted(doc_score_pairs, key=lambda x: x[1], reverse=True)
+    
+    # Get the top 5 documents
+    top_5_doc_score_pairs = doc_score_pairs[:5]
+    
+    # Find the indices of the top 5 documents
+    top_5_indices = [documents.index(doc) for doc, score in top_5_doc_score_pairs]
+    
+    # Select the top 5 rows from the dataframe
+    top_5_df = df.iloc[top_5_indices]
+    
+    return top_5_df
 
 
 
@@ -370,7 +379,7 @@ def main():
         st.subheader("Aggregated News Feed")
         show_news(all_news)
         if query:
-            scores = generate_embeddings(query, all_news["description"].to_list())
+            scores = get_top_5_documents(query, all_news)
             st.subheader("Answer")
             st.write(scores)
 
