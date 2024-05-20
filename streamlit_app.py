@@ -101,6 +101,32 @@ def arctic_summary(text):
                 st.write("I cannot answer this question.")
         yield str(event)
 
+def arctic_answer(query, text):
+    """
+    Generate a summary for the given text using the Arctic model.
+
+    Args:
+        text (str): The input text to summarize.
+
+    Yields:
+        str: The generated summary text.
+    """
+    # st.write(get_num_tokens(text))
+    for event_index, event in enumerate(
+        replicate.stream(
+            "snowflake/snowflake-arctic-instruct",
+            input={
+                "prompt": query,
+                "prompt_template": r"You're a helpful AI. You know the latest news of snowflake: " +  text + r"Answer the following question {prompt}. Summarize the core content of this release article.",
+                "max_new_tokens": 512,
+            },
+        )
+    ):
+        if (event_index + 0) % 50 == 0:
+            if not check_safety(text):
+                st.write("I cannot answer this question.")
+        yield str(event)
+
 
 def check_safety(text) -> bool:
     """
@@ -355,6 +381,27 @@ def show_news(news_df):
             summary = fetch_webpage_summary(href)
             st.write(f"**Summary:** {summary}")
 
+def show_answer(news_df, query):
+    """
+    Show the answer.
+
+    Args:
+        news_df (DataFrame): The data frame containing the news feed.
+    """
+    summaries = []
+    for n, i in news_df.iterrows():
+        href = i["url"]
+        description = i["description"]
+        url_txt = i["title"]
+        src_time = i["src_time"]
+    
+        summaries.append(fetch_webpage_summary(href))
+
+    answer = arctic_answer(query, " ".join(summaries))
+
+    st.write(f"**Summary:** {answer}")
+
+
 def main():
     """
     Main function to run the Streamlit app.
@@ -379,9 +426,9 @@ def main():
         st.subheader("Aggregated News Feed")
         show_news(all_news)
         if query:
-            scores = get_top_5_documents(query, all_news)
+            top_5_docs = get_top_5_documents(query, all_news)
             st.subheader("Answer")
-            st.write(scores)
+            st.write(top_5_docs)
 
     else:
         st.write("No news available from the provided RSS feeds.")
