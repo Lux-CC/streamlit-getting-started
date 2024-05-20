@@ -35,7 +35,7 @@ def get_num_tokens(prompt):
     tokens = tokenizer.tokenize(prompt)
     return len(tokens)
 
-def arctic_summary(text, index):
+def arctic_summary(text):
     for event_index, event in enumerate(replicate.stream("snowflake/snowflake-arctic-instruct",
                            input={"prompt": text,
                                   "prompt_template": r"{prompt}",
