@@ -39,6 +39,7 @@ def get_num_tokens(prompt):
 
 
 def arctic_summary(text):
+    st.write(get_num_tokens(text))
     for event_index, event in enumerate(
         replicate.stream(
             "snowflake/snowflake-arctic-instruct",
