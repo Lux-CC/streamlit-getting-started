@@ -335,7 +335,9 @@ def main():
     for feed in rss_feeds:
         feed_data = news_agg(feed)
         all_news = pd.concat([all_news, feed_data], ignore_index=True)
-        all_news.sort_values(by="elapsed_time", inplace=True)
+    
+    all_news.sort_values(by="elapsed_time", inplace=True)
+    all_news["src_time"] = all_news["src"] + ("&nbsp;" * 5) + all_news["elapsed_time_str"]
 
 
     if not all_news.empty:
