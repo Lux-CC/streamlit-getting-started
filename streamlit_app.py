@@ -244,7 +244,6 @@ final_df.drop_duplicates(subset="description", inplace=True)
 
 # Filter out rows where 'title' is empty and create a copy
 final_df = final_df.loc[final_df["title"] != "", :].copy()
-final_df
 # #################################################
 # ############# FRONT END HTML SCRIPT ##############
 # #################################################
@@ -265,7 +264,7 @@ for n, i in final_df.iterrows():
         unsafe_allow_html=True,
     )
 
-    # Divider
-    st.markdown(
-        "<hr style='border: 0; border-top: 1px solid #ddd;'>", unsafe_allow_html=True
-    )
+    # # Divider
+    # st.markdown(
+    #     "<hr style='border: 0; border-top: 1px solid #ddd;'>", unsafe_allow_html=True
+    # )
