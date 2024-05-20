@@ -42,11 +42,11 @@ def main():
     if 'categories' not in st.session_state:
         st.session_state.categories = ["home", "money", "friendships", "career", "health", "fun", "personal growth", "community"]
     if 'values' not in st.session_state:
-        st.session_state.values = [7, 5, 8, 6, 9, 4, 7, 5]
+        st.session_state.category_values = [7, 5, 8, 6, 9, 4, 7, 5]
 
         # Define categories and their corresponding values
     st.header("Current Categories and Values")
-    st.write({cat: val for cat, val in zip(st.session_state.categories, st.session_state.values)})
+    st.write({cat: val for cat, val in zip(st.session_state.categories, st.session_state.category_values)})
 
     st.header("Add a New Category")
     add_category()
@@ -67,9 +67,9 @@ def main():
     # Create the polar bar chart
     fig = go.Figure(
         go.Barpolar(
-            r=st.session_state.values,
+            r=st.session_state.category_values,
             theta=angles,
-            marker_color=st.session_state.values,  # Use the values to determine the color
+            marker_color=st.session_state.category_values,  # Use the values to determine the color
             marker_colorscale=custom_colorscale,  # Choose a colorscale
             marker_colorbar_thickness=24,
             marker_cmin=0,
