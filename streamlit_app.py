@@ -15,7 +15,8 @@ rss = [
 ]
 
 
-os.environ['REPLICATE_API_TOKEN'] = st.secrets["REPLICATE_API_TOKEN"]
+os.environ["REPLICATE_API_TOKEN"] = st.secrets["REPLICATE_API_TOKEN"]
+
 
 @st.cache_resource(show_spinner=False)
 def get_tokenizer():
@@ -29,19 +30,26 @@ def get_tokenizer():
 # def get_llamaguard_deployment():
 #     return replicate.deployments.get("snowflake/llamaguard")
 
+
 def get_num_tokens(prompt):
     """Get the number of tokens in a given prompt"""
     tokenizer = get_tokenizer()
     tokens = tokenizer.tokenize(prompt)
     return len(tokens)
 
+
 def arctic_summary(text):
-    for event_index, event in enumerate(replicate.stream("snowflake/snowflake-arctic-instruct",
-                           input={"prompt": text,
-                                  "prompt_template": r"Note the following release webpage: {prompt}. Summarize the core content of this release article.",
-                                #   "temperature": st.session_state.temperature,
-                                #   "top_p": st.session_state.top_p,
-                                  })):
+    for event_index, event in enumerate(
+        replicate.stream(
+            "snowflake/snowflake-arctic-instruct",
+            input={
+                "prompt": text,
+                "prompt_template": r"Note the following release webpage: {prompt}. Summarize the core content of this release article.",
+                #   "temperature": st.session_state.temperature,
+                #   "top_p": st.session_state.top_p,
+            },
+        )
+    ):
         if (event_index + 0) % 50 == 0:
             if not check_safety(text):
                 st.write("I cannot answer this question.")
@@ -61,6 +69,7 @@ def check_safety(text) -> bool:
     # else:
     #     return True
     return True
+
 
 def date_time_parser(dt):
     """
@@ -276,19 +285,25 @@ def summarize_article(description):
 # Fetch and parse webpage content
 def fetch_webpage_summary(url):
     try:
-        response = r.get(url)
+        response = r.get(
+            url,
+            headers={
+                "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.131 Safari/537.36"
+            },
+        )
         response.raise_for_status()
-        soup = BeautifulSoup(response.content, 'html.parser')
-        
+        soup = BeautifulSoup(response.content, "html.parser")
+
         # Extract main content (this might need to be adjusted based on the webpage structure)
-        paragraphs = soup.find_all('p')
-        content = ' '.join([para.get_text() for para in paragraphs])
-        
+        paragraphs = soup.find_all("p")
+        content = " ".join([para.get_text() for para in paragraphs])
+
         # Summarize the extracted content
         summary = summarize_article(content)
         return summary
     except r.exceptions.RequestException as e:
         return f"Error fetching the article: {e}"
+
 
 # Use a text_input to get the keywords to filter the dataframe
 text_search = st.text_input("Search feed", value="")
