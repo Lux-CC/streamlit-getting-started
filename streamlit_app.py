@@ -41,7 +41,6 @@ def get_num_tokens(prompt):
 def arctic_summary(text):
     st.write(get_num_tokens(text))
 
-
     for event_index, event in enumerate(
         replicate.stream(
             "snowflake/snowflake-arctic-instruct",
@@ -289,13 +288,17 @@ def summarize_article(paragraph_list):
         num_tokens += get_num_tokens(paragraph)
         if num_tokens > 1500:
             # summarize and restart the loop
-            summary_tokens = summary_tokens.extend([token for token in arctic_summary(text_to_summarize)])
+            summary_tokens = summary_tokens.extend(
+                [token for token in arctic_summary(text_to_summarize)]
+            )
             text_to_summarize = paragraph
             num_tokens = get_num_tokens(paragraph)
         else:
-            text_to_summarize += paragraph        
+            text_to_summarize += paragraph
 
-    summary_tokens = summary_tokens.extend([token for token in arctic_summary(text_to_summarize)])
+    summary_tokens = summary_tokens.extend(
+        [token for token in arctic_summary(text_to_summarize)]
+    )
     st.write(summary_tokens)
     total_summary_tokens = arctic_summary("".join(summary_tokens))
     return "".join([token for token in total_summary_tokens])
