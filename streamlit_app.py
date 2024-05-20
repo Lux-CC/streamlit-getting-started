@@ -2,6 +2,7 @@ import streamlit as st
 import replicate
 import os
 from transformers import AutoTokenizer
+from streamlit_plotly_events import plotly_events
 
 # import plotly.express as px
 import pandas as pd
@@ -43,6 +44,8 @@ def main():
         st.session_state.categories = ["home", "money", "friendships", "career", "health", "fun", "personal growth", "community"]
     if 'values' not in st.session_state:
         st.session_state.category_values = [7, 5, 8, 6, 9, 4, 7, 5]
+    if 'selected_category' not in st.session_state:
+        st.session_state.selected_category = None
 
         # Define categories and their corresponding values
     st.header("Current Categories and Values")
@@ -89,6 +92,14 @@ def main():
     )
 
     st.plotly_chart(fig)
+    # Use streamlit_plotly_events to capture click events
+    selected_points = plotly_events(fig, click_event=True, hover_event=False, select_event=False, key="polar_chart")
+
+    # Handle click events
+    if selected_points:
+        selected_index = selected_points[0]['pointIndex']
+        st.session_state.selected_category = st.session_state.categories[selected_index]
+        st.write(f"Selected Category: {st.session_state.selected_category}")
 
     # init_chat_history()
     # display_chat_messages()

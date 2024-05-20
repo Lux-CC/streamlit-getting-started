@@ -4,3 +4,4 @@ transformers
 plotly
 pandas
 numpy
+streamlit-plotly-events
