@@ -255,28 +255,28 @@ final_df.drop_duplicates(subset="description", inplace=True)
 
 # Filter out rows where 'title' is empty and create a copy
 final_df = final_df.loc[final_df["title"] != "", :].copy()
+final_df
+# #################################################
+# ############# FRONT END HTML SCRIPT ##############
+# #################################################
+# result_str = '<html><table style="border: none;"><tr style="border: none;"><td style="border: none; height: 10px;"></td></tr>'
+# for n, i in final_df.iterrows():  # iterating through the search results
+#     href = i["url"]
+#     description = i["description"]
+#     url_txt = i["title"]
+#     src_time = i["src_time"]
 
-#################################################
-############# FRONT END HTML SCRIPT ##############
-#################################################
-result_str = '<html><table style="border: none;"><tr style="border: none;"><td style="border: none; height: 10px;"></td></tr>'
-for n, i in final_df.iterrows():  # iterating through the search results
-    href = i["url"]
-    description = i["description"]
-    url_txt = i["title"]
-    src_time = i["src_time"]
+#     result_str += (
+#         f'<a href="{href}" target="_blank" style="background-color: whitesmoke; display: block; height:100%; text-decoration: none; color: black; line-height: 1.2;">'
+#         + f'<tr style="align:justify; border-left: 5px solid transparent; border-top: 50px solid transparent; border-bottom: 5px solid transparent; font-weight: bold; font-size: 18px; background-color: whitesmoke;">{url_txt}</tr></a>'
+#         + f'<a href="{href}" target="_blank" style="background-color: whitesmoke; display: block; height:100%; text-decoration: none; color: dimgray; line-height: 1.25;">'
+#         + f'<tr style="align:justify; border-left: 5px solid transparent; border-top: 0px; border-bottom: 5px solid transparent; font-size: 14px; padding-bottom:5px;">{description}</tr></a>'
+#         + f'<a href="{href}" target="_blank" style="background-color: whitesmoke; display: block; height:100%; text-decoration: none; color: black;">'
+#         + f'<tr style="border-left: 5px solid transparent; border-top: 0px; border-bottom: 5px solid transparent; color: green; font-size: 11px;">{src_time}</tr></a>'
+#         + f'<tr style="border: none;"><td style="border: none; height: 10px;"></td></tr>'
+#     )
 
-    result_str += (
-        f'<a href="{href}" target="_blank" style="background-color: whitesmoke; display: block; height:100%; text-decoration: none; color: black; line-height: 1.2;">'
-        + f'<tr style="align:justify; border-left: 5px solid transparent; border-top: 50px solid transparent; border-bottom: 5px solid transparent; font-weight: bold; font-size: 18px; background-color: whitesmoke;">{url_txt}</tr></a>'
-        + f'<a href="{href}" target="_blank" style="background-color: whitesmoke; display: block; height:100%; text-decoration: none; color: dimgray; line-height: 1.25;">'
-        + f'<tr style="align:justify; border-left: 5px solid transparent; border-top: 0px; border-bottom: 5px solid transparent; font-size: 14px; padding-bottom:5px;">{description}</tr></a>'
-        + f'<a href="{href}" target="_blank" style="background-color: whitesmoke; display: block; height:100%; text-decoration: none; color: black;">'
-        + f'<tr style="border-left: 5px solid transparent; border-top: 0px; border-bottom: 5px solid transparent; color: green; font-size: 11px;">{src_time}</tr></a>'
-        + f'<tr style="border: none;"><td style="border: none; height: 10px;"></td></tr>'
-    )
-
-result_str += "</table></html>"
+# result_str += "</table></html>"
 
 # # HTML Script to hide Streamlit menu
 # # Reference: https://discuss.streamlit.io/t/how-do-i-hide-remove-the-menu-in-production/362/8
@@ -290,5 +290,5 @@ result_str += "</table></html>"
 #             </style>
 #             """
 
-st.markdown(result_str, unsafe_allow_html=True)
+# st.markdown(result_str, unsafe_allow_html=True)
 # st.markdown(hide_streamlit_style, unsafe_allow_html=True)
