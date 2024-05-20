@@ -8,6 +8,8 @@ from dateutil import parser
 import streamlit as st
 from transformers import AutoTokenizer
 import replicate
+from sentence_transformers import SentenceTransformer
+
 
 # List of RSS feeds to fetch
 rss_feeds = [
@@ -17,6 +19,28 @@ rss_feeds = [
 
 # Set Replicate API token
 os.environ["REPLICATE_API_TOKEN"] = st.secrets["REPLICATE_API_TOKEN"]
+
+
+def generate_embeddings(query, documents):
+    model = SentenceTransformer("Snowflake/snowflake-arctic-embed-l")
+
+    query = [query]
+    documents = ['The Data Cloud!', 'Mexico City of Course!']
+
+    query_embeddings = model.encode(queries, prompt_name="query")
+    document_embeddings = model.encode(documents)
+
+    scores = query_embeddings @ document_embeddings.T
+    for query, query_scores in zip(queries, scores):
+        doc_score_pairs = list(zip(documents, query_scores))
+        doc_score_pairs = sorted(doc_score_pairs, key=lambda x: x[1], reverse=True)
+        # Output passages & scores
+        st.write("Query:", query)
+        for document, score in doc_score_pairs:
+            st.write(score, document)
+    
+    return [(query, query_scores) for query, query_scores in zip(queries, scores)]
+
 
 
 @st.cache_resource(show_spinner=False)
@@ -329,6 +353,8 @@ def main():
     st.set_page_config(page_title="RSS Feed Summarizer")
     st.title("RSS Feed Summarizer")
 
+    query = st.text_input("Ask a question about the news")
+
     # Initialize empty dataframe to store all news
     all_news = pd.DataFrame()
 
@@ -343,13 +369,11 @@ def main():
     if not all_news.empty:
         st.subheader("Aggregated News Feed")
         show_news(all_news)
+        if query:
+            scores = generate_embeddings(query, all_news["description"].to_list())
+            st.subheader("Answer")
+            st.write(scores)
 
-        news_url = st.text_input("Ask a question about the news")
-        if news_url:
-            summary = fetch_webpage_summary(news_url)
-            if summary:
-                st.subheader("Summary")
-                st.write(summary)
     else:
         st.write("No news available from the provided RSS feeds.")
 

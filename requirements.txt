@@ -10,3 +10,4 @@ lxml
 python-dateutil
 requests
 bs4
+sentence-transformers
