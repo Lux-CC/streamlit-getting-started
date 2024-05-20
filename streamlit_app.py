@@ -164,16 +164,18 @@ def rss_parser(i):
         date = date.replace("GMT", "+0530")
 
     date1 = parser.parse(date)  # parsing the date to Timestamp object
-    st.write(pd.DataFrame(
-        {
-            "title": title,
-            "url": url,
-            "description": desc,
-            "date": date,
-            "parsed_date": date1,
-        },
-        index=[0],
-    ))
+    st.write(
+        pd.DataFrame(
+            {
+                "title": title,
+                "url": url,
+                "description": desc,
+                "date": date,
+                "parsed_date": date1,
+            },
+            index=[0],
+        )
+    )
     # data frame of the processed data
     return pd.DataFrame(
         {
@@ -185,7 +187,6 @@ def rss_parser(i):
         },
         index=[0],
     )
-
 
 
 def news_agg(rss):
@@ -214,7 +215,7 @@ def news_agg(rss):
     # Concatenate all DataFrames at once
     if rss_data == []:
         return pd.DataFrame()
-    
+
     rss_df = pd.concat(rss_data, ignore_index=True)
 
     # Clean and process the DataFrame
@@ -264,14 +265,19 @@ for n, i in final_df.iterrows():
     description = i["description"]
     url_txt = i["title"]
     src_time = i["src_time"]
-    
-    st.markdown(f"""
+
+    st.markdown(
+        f"""
     <div style="border:1px solid #ddd; padding: 10px; margin: 10px 0; border-radius: 5px;">
         <h3 style="margin-bottom: 5px;"><a href="{href}" target="_blank" style="text-decoration: none; color: #007bff;">{url_txt}</a></h3>
         <p style="margin-bottom: 5px;">{description}</p>
         <p style="color: #6c757d; font-size: 0.9em;">{src_time}</p>
     </div>
-    """, unsafe_allow_html=True)
+    """,
+        unsafe_allow_html=True,
+    )
 
     # Divider
-    st.markdown("<hr style='border: 0; border-top: 1px solid #ddd;'>", unsafe_allow_html=True)
+    st.markdown(
+        "<hr style='border: 0; border-top: 1px solid #ddd;'>", unsafe_allow_html=True
+    )
