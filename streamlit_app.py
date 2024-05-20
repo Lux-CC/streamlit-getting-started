@@ -164,7 +164,16 @@ def rss_parser(i):
         date = date.replace("GMT", "+0530")
 
     date1 = parser.parse(date)  # parsing the date to Timestamp object
-
+    st.write(pd.DataFrame(
+        {
+            "title": title,
+            "url": url,
+            "description": desc,
+            "date": date,
+            "parsed_date": date1,
+        },
+        index=[0],
+    ))
     # data frame of the processed data
     return pd.DataFrame(
         {
