@@ -273,6 +273,23 @@ def summarize_article(description):
     return "".join([token for token in summary])
 
 
+# Fetch and parse webpage content
+def fetch_webpage_summary(url):
+    try:
+        response = r.get(url)
+        response.raise_for_status()
+        soup = BeautifulSoup(response.content, 'html.parser')
+        
+        # Extract main content (this might need to be adjusted based on the webpage structure)
+        paragraphs = soup.find_all('p')
+        content = ' '.join([para.get_text() for para in paragraphs])
+        
+        # Summarize the extracted content
+        summary = summarize_article(content)
+        return summary
+    except r.exceptions.RequestException as e:
+        return f"Error fetching the article: {e}"
+
 # Use a text_input to get the keywords to filter the dataframe
 text_search = st.text_input("Search feed", value="")
 dataframes = [news_agg(i) for i in rss]
@@ -316,5 +333,5 @@ for n, i in final_df.iterrows():
     )
     # Add a button to summarize the article
     if st.button(f"Summarize Article {n+1}"):
-        summary = summarize_article(description)
+        summary = fetch_webpage_summary(href)
         st.write(f"**Summary:** {summary}")
