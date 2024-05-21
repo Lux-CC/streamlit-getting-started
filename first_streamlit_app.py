@@ -136,27 +136,6 @@ def get_replicate_api_token():
     os.environ["REPLICATE_API_TOKEN"] = st.secrets["REPLICATE_API_TOKEN"]
 
 
-def display_sidebar_ui():
-    with st.sidebar:
-        st.title("Some side panel")
-        st.subheader("Subheader")
-        st.slider(
-            "temperature",
-            min_value=0.01,
-            max_value=5.0,
-            value=0.3,
-            step=0.01,
-            key="temperature",
-        )
-
-        st.button("Clear chat history", on_click=clear_chat_history)
-
-        st.sidebar.caption(
-            "Build your own app powered by Arctic and [enter to win](https://arctic-streamlit-hackathon.devpost.com/) $10k in prizes."
-        )
-
-        st.subheader("About")
-        st.caption("Soow. Very nice")
 
         # # # Uncomment to show debug info
         # st.subheader("Debug")

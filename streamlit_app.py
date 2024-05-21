@@ -11,19 +11,44 @@ import replicate
 from sentence_transformers import SentenceTransformer
 
 
-# List of RSS feeds to fetch
-rss_feeds = [
-    "https://www.snowflake.com/feed/",
-    "https://rss.aws-news.com/custom_feeds/FEzdG/rss",
-]
-
 # Set Replicate API token
 os.environ["REPLICATE_API_TOKEN"] = st.secrets["REPLICATE_API_TOKEN"]
 
+def display_sidebar_ui():
+    with st.sidebar:
+        st.title("Configuration")
+        rss_feed_labels = {
+            "https://www.snowflake.com/feed/": "Snowflake Official",
+            "https://rss.aws-news.com/custom_feeds/FEzdG/rss": "AWS Snowflake News"
+        }
+
+        # Get the list of feed URLs and labels
+        rss_feeds = list(rss_feed_labels.keys())
+        feed_labels = list(rss_feed_labels.values())
+
+        # Create a dictionary to map labels back to their URLs for later use
+        label_to_url = {label: url for url, label in rss_feed_labels.items()}
+
+        # Use the labels in the multiselect widget
+        selected_labels = st.multiselect("Select RSS feed(s)", feed_labels, feed_labels)
+
+        # Convert selected labels back to their URLs
+        st.session_state.rss_feeds = [label_to_url[label] for label in selected_labels]
+
+
+        st.subheader("About")
+        st.caption("Hi there! I hope this app helps you catch up with the latest news of snowflake.")
+
+@st.cache_resource(show_spinner=False)
+def get_transformer():
+    """
+    Get a transformer model to use for summarization.
+    """
+    return SentenceTransformer("snowflake/snowflake-arctic-embed-l")
+
 @st.cache_data(show_spinner=True)
 def get_top_5_documents(query, df):
-    model = SentenceTransformer("snowflake/snowflake-arctic-embed-l")
-
+    model = get_transformer()
     # Extracting the descriptions from the dataframe
     documents = df["description"].tolist()
 
@@ -83,18 +108,25 @@ def arctic_summary(text, query=""):
     Yields:
         str: The generated summary text.
     """
-    prompt_template = r"Note the following release webpage: {prompt}. Summarize the core content of this release article."
+    prompt= f"Note the following release webpage: {text}."
     if query:
-        prompt_template += (
-            "If the text contains an answer to the following question, include it at the end: " + query + ". Else, just summarize."
+        prompt += (
+            "A user asks the following question about the webpage: " + query + ". "
         )
+    prompt += "Provide a complete summary of the webpage containing all relevant information"
+    if query:
+        prompt += (
+            ", also to answer the question at the end."
+        )
+    else:
+        prompt += "."
+
     # st.write(get_num_tokens(text))
     for event_index, event in enumerate(
         replicate.stream(
             "snowflake/snowflake-arctic-instruct",
             input={
-                "prompt": text,
-                "prompt_template": prompt_template,
+                "prompt": prompt,
                 "max_new_tokens": 512,
             },
         )
@@ -105,7 +137,7 @@ def arctic_summary(text, query=""):
         yield str(event)
 
 
-@st.cache_resource(show_spinner=True)
+@st.cache_resource(show_spinner=True, )
 def arctic_answer(query, text):
     """
     Generate a summary for the given text using the Arctic model.
@@ -316,24 +348,29 @@ def summarize_article(paragraph_list, query=""):
     text_to_summarize = ""
     summary_tokens = []
     num_tokens = 0
-    # st.write(paragraph_list)
+    multipart = False
     for paragraph in paragraph_list:
         num_tokens += get_num_tokens(paragraph)
-        # st.write(paragraph)
         if num_tokens > 1500:
             summary_tokens.extend(
                 [token for token in arctic_summary(text_to_summarize, query)]
             )
+            multipart = True
             text_to_summarize = paragraph
             num_tokens = get_num_tokens(paragraph)
         else:
             text_to_summarize += paragraph
+
     summary_tokens.extend([token for token in arctic_summary(text_to_summarize, query)])
-    # st.write(summary_tokens)
-    total_summary_tokens = arctic_summary("".join(summary_tokens), query)
-    return "".join([token for token in total_summary_tokens])
+    summary_extended = "".join(summary_tokens)
+    if multipart:
+        short_summary_tokens = arctic_summary(summary_extended, query)
+        return "".join([token for token in short_summary_tokens])
+    else:
+        return summary_extended
 
 
+@st.cache_data
 def fetch_webpage_summary(url, query=""):
     """
     Fetch and summarize the webpage content.
@@ -372,21 +409,41 @@ def show_news(news_df):
         description = i["description"]
         url_txt = i["title"]
         src_time = i["src_time"]
+        # Create a container for the content and button
+        container = st.container()
 
-        st.markdown(
-            f"""
-        <div style="border:1px solid #ddd; padding: 10px; margin: 10px 0; border-radius: 5px;">
-            <h3 style="margin-bottom: 5px;"><a href="{href}" target="_blank" style="text-decoration: none; color: #007bff;">{url_txt}</a></h3>
-            <p style="margin-bottom: 5px;">{description}</p>
-            <p style="color: #6c757d; font-size: 0.9em;">{src_time}</p>
-        </div>
-        """,
-            unsafe_allow_html=True,
-        )
-        # Add a button to summarize the article
-        if st.button(f"Summarize Article {n+1}"):
-            summary = fetch_webpage_summary(href)
-            st.write(f"**Summary:** {summary}")
+        with container:
+            st.markdown(
+                f"""
+                <div style="border:1px solid #ddd; padding: 10px; margin: 10px 0; border-radius: 5px;">
+                    <h3 style="margin-bottom: 5px;">
+                        <a href="{href}" target="_blank" style="text-decoration: none; color: #007bff;">{url_txt}</a>
+                    </h3>
+                    <p style="margin-bottom: 5px;">{description}</p>
+                    <p style="color: #6c757d; font-size: 0.9em;">{src_time}</p>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+            # Add a button to summarize the article inside the container
+            if st.button(f"☝ Summarize Article", key=href):
+                summary = fetch_webpage_summary(href)
+                st.write(f"**Summary:** {summary}")
+
+        # st.markdown(
+        #     f"""
+        # <div style="border:1px solid #ddd; padding: 10px; margin: 10px 0; border-radius: 5px;">
+        #     <h3 style="margin-bottom: 5px;"><a href="{href}" target="_blank" style="text-decoration: none; color: #007bff;">{url_txt}</a></h3>
+        #     <p style="margin-bottom: 5px;">{description}</p>
+        #     <p style="color: #6c757d; font-size: 0.9em;">{src_time}</p>
+        # </div>
+        # """,
+        #     unsafe_allow_html=True,
+        # )
+        # # Add a button to summarize the article
+        # if st.button(f"☝ Summarize Article"):
+        #     summary = fetch_webpage_summary(href)
+        #     st.write(f"**Summary:** {summary}")
 
 
 def show_answer(news_df, query):
@@ -399,9 +456,6 @@ def show_answer(news_df, query):
     summaries = []
     for n, i in news_df.iterrows():
         href = i["url"]
-        description = i["description"]
-        url_txt = i["title"]
-        src_time = i["src_time"]
         summary = fetch_webpage_summary(href, query)
         summaries.append(summary)
 
@@ -413,15 +467,16 @@ def main():
     """
     Main function to run the Streamlit app.
     """
-    st.set_page_config(page_title="RSS Feed Summarizer")
-    st.title("RSS Feed Summarizer")
+    st.set_page_config(page_title="What's new in Snowflake?")
+    st.title("What's new in Snowflake?")
+    display_sidebar_ui()
 
     query = st.text_input("Ask a question about the news")
 
     # Initialize empty dataframe to store all news
     st.session_state.all_news = pd.DataFrame()
 
-    for feed in rss_feeds:
+    for feed in st.session_state.rss_feeds:
         st.session_state.feed_data = news_agg(feed)
         st.session_state.all_news = pd.concat([st.session_state.all_news, st.session_state.feed_data], ignore_index=True)
 
@@ -432,10 +487,10 @@ def main():
 
     if not st.session_state.all_news.empty:
         if query:
-            st.session_state.top_5_docs = get_top_5_documents(query, all_news)
+            st.session_state.top_5_docs = get_top_5_documents(query, st.session_state.all_news)
             st.subheader("Answer")
             show_answer(st.session_state.top_5_docs, query)
-        st.subheader("Aggregated News Feed")
+        st.subheader("News Feed")
         show_news(st.session_state.all_news)
     else:
         st.write("No news available from the provided RSS feeds.")
