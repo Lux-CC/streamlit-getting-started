@@ -105,7 +105,7 @@ def arctic_summary(text, query=""):
         yield str(event)
 
 
-@st.cache_data(show_spinner=True)
+@st.cache_resource(show_spinner=True)
 def arctic_answer(query, text):
     """
     Generate a summary for the given text using the Arctic model.
