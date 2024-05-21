@@ -422,21 +422,21 @@ def main():
     all_news = pd.DataFrame()
 
     for feed in rss_feeds:
-        feed_data = news_agg(feed)
-        all_news = pd.concat([all_news, feed_data], ignore_index=True)
+        st.session_state.feed_data = news_agg(feed)
+        st.session_state.all_news = pd.concat([st.session_state.all_news, st.session_state.feed_data], ignore_index=True)
 
-    all_news.sort_values(by="elapsed_time", inplace=True)
-    all_news["src_time"] = (
-        all_news["src"] + ("&nbsp;" * 5) + all_news["elapsed_time_str"]
+    st.session_state.all_news.sort_values(by="elapsed_time", inplace=True)
+    st.session_state.all_news["src_time"] = (
+        st.session_state.all_news["src"] + ("&nbsp;" * 5) + st.session_state.all_news["elapsed_time_str"]
     )
 
-    if not all_news.empty:
+    if not st.session_state.all_news.empty:
         if query:
-            top_5_docs = get_top_5_documents(query, all_news)
+            st.session_state.top_5_docs = get_top_5_documents(query, all_news)
             st.subheader("Answer")
-            show_answer(top_5_docs, query)
+            show_answer(st.session_state.top_5_docs, query)
         st.subheader("Aggregated News Feed")
-        show_news(all_news)
+        show_news(st.session_state.all_news)
     else:
         st.write("No news available from the provided RSS feeds.")
 
