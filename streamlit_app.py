@@ -73,7 +73,7 @@ def get_num_tokens(prompt):
     return len(tokens)
 
 
-def arctic_summary(text):
+def arctic_summary(text, query=""):
     """
     Generate a summary for the given text using the Arctic model.
 
@@ -83,13 +83,18 @@ def arctic_summary(text):
     Yields:
         str: The generated summary text.
     """
+    prompt_template = r"Note the following release webpage: {prompt}. Summarize the core content of this release article."
+    if query:
+        prompt_template += (
+            "Make sure it includes answers to the question: " + query + "."
+        )
     # st.write(get_num_tokens(text))
     for event_index, event in enumerate(
         replicate.stream(
             "snowflake/snowflake-arctic-instruct",
             input={
                 "prompt": text,
-                "prompt_template": r"Note the following release webpage: {prompt}. Summarize the core content of this release article.",
+                "prompt_template": prompt_template,
                 "max_new_tokens": 512,
             },
         )
@@ -298,7 +303,7 @@ def news_agg(rss):
         return pd.DataFrame()
 
 
-def summarize_article(paragraph_list):
+def summarize_article(paragraph_list, query=""):
     """
     Summarize the article from a list of paragraphs.
 
@@ -317,19 +322,19 @@ def summarize_article(paragraph_list):
         # st.write(paragraph)
         if num_tokens > 1500:
             summary_tokens.extend(
-                [token for token in arctic_summary(text_to_summarize)]
+                [token for token in arctic_summary(text_to_summarize, query)]
             )
             text_to_summarize = paragraph
             num_tokens = get_num_tokens(paragraph)
         else:
             text_to_summarize += paragraph
-    summary_tokens.extend([token for token in arctic_summary(text_to_summarize)])
+    summary_tokens.extend([token for token in arctic_summary(text_to_summarize, query)])
     # st.write(summary_tokens)
-    total_summary_tokens = arctic_summary("".join(summary_tokens))
+    total_summary_tokens = arctic_summary("".join(summary_tokens), query)
     return "".join([token for token in total_summary_tokens])
 
 
-def fetch_webpage_summary(url):
+def fetch_webpage_summary(url, query=""):
     """
     Fetch and summarize the webpage content.
 
@@ -348,7 +353,7 @@ def fetch_webpage_summary(url):
         if not content:
             st.error("No content found to summarize.")
             return ""
-        summary = summarize_article(content)
+        summary = summarize_article(content, query)
         return summary
     except r.exceptions.RequestException as e:
         st.error(f"Error fetching webpage content: {e}")
@@ -398,8 +403,7 @@ def show_answer(news_df, query):
         url_txt = i["title"]
         src_time = i["src_time"]
         st.write(summaries)
-        summaries.append(fetch_webpage_summary(href))
-
+        summaries.append(fetch_webpage_summary(href, query))
 
     answer = arctic_answer(query, " ".join(summaries))
     st.write(f"**Bot:** {''.join([token for token in answer])}")
