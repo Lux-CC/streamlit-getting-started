@@ -397,14 +397,17 @@ def show_answer(news_df, query):
         news_df (DataFrame): The data frame containing the news feed.
     """
     summaries = []
+    st.write(news_df)
     for n, i in news_df.iterrows():
         href = i["url"]
         description = i["description"]
         url_txt = i["title"]
         src_time = i["src_time"]
-        st.write(summaries)
-        summaries.append(fetch_webpage_summary(href, query))
+        summary = fetch_webpage_summary(href, query)
+        st.write(summary)
+        summaries.append(summary)
 
+    st.write(summaries)
     answer = arctic_answer(query, " ".join(summaries))
     st.write(f"**Bot:** {''.join([token for token in answer])}")
 
