@@ -39,7 +39,7 @@ def get_top_5_documents(query, df):
     doc_score_pairs = sorted(doc_score_pairs, key=lambda x: x[1], reverse=True)
 
     # Get the top 5 documents
-    top_5_doc_score_pairs = doc_score_pairs[:5]
+    top_5_doc_score_pairs = doc_score_pairs[:2]
 
     # Find the indices of the top 5 documents
     top_5_indices = [documents.index(doc) for doc, score in top_5_doc_score_pairs]
