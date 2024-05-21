@@ -105,6 +105,7 @@ def arctic_summary(text, query=""):
         yield str(event)
 
 
+@st.cache_data(show_spinner=True)
 def arctic_answer(query, text):
     """
     Generate a summary for the given text using the Arctic model.
@@ -301,6 +302,7 @@ def news_agg(rss):
         return pd.DataFrame()
 
 
+@st.cache_data
 def summarize_article(paragraph_list, query=""):
     """
     Summarize the article from a list of paragraphs.
@@ -435,7 +437,6 @@ def main():
             show_answer(top_5_docs, query)
         st.subheader("Aggregated News Feed")
         show_news(all_news)
-
     else:
         st.write("No news available from the provided RSS feeds.")
 
