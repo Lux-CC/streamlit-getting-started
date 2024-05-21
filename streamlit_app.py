@@ -123,7 +123,7 @@ def arctic_answer(query, text):
                 "prompt": query,
                 "prompt_template": r"You're a helpful AI. You know the latest news of snowflake: "
                 + text
-                + r"Answer the following question {prompt}. Summarize the core content of this release article.",
+                + r"Answer the following question {prompt}.",
                 "max_new_tokens": 512,
             },
         )
