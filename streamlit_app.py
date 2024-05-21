@@ -401,7 +401,6 @@ def show_answer(news_df, query):
         summaries.append(fetch_webpage_summary(href))
 
     answer = arctic_answer(query, " ".join(summaries))
-
     st.write(f"**Summary:** {''.join([token for token in answer])}")
 
 
@@ -428,12 +427,12 @@ def main():
 
     if not all_news.empty:
         st.subheader("Aggregated News Feed")
-        show_news(all_news)
         if query:
             top_5_docs = get_top_5_documents(query, all_news)
             st.subheader("Answer")
             show_answer(top_5_docs, query)
             st.write(top_5_docs)
+        show_news(all_news)
 
     else:
         st.write("No news available from the provided RSS feeds.")
