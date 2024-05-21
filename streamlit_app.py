@@ -86,7 +86,7 @@ def arctic_summary(text, query=""):
     prompt_template = r"Note the following release webpage: {prompt}. Summarize the core content of this release article."
     if query:
         prompt_template += (
-            "Make sure it includes answers to the question: " + query + "."
+            "If the text contains an answer to the following question, include it: " + query + ". Else, just summarize."
         )
     # st.write(get_num_tokens(text))
     for event_index, event in enumerate(
