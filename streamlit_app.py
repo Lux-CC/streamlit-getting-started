@@ -419,7 +419,7 @@ def main():
     query = st.text_input("Ask a question about the news")
 
     # Initialize empty dataframe to store all news
-    all_news = pd.DataFrame()
+    st.session_state.all_news = pd.DataFrame()
 
     for feed in rss_feeds:
         st.session_state.feed_data = news_agg(feed)
