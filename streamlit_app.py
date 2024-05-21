@@ -20,7 +20,7 @@ rss_feeds = [
 # Set Replicate API token
 os.environ["REPLICATE_API_TOKEN"] = st.secrets["REPLICATE_API_TOKEN"]
 
-
+@st.cache_data(show_spinner=True)
 def get_top_5_documents(query, df):
     model = SentenceTransformer("snowflake/snowflake-arctic-embed-l")
 
