@@ -120,10 +120,8 @@ def arctic_answer(query, text):
         replicate.stream(
             "snowflake/snowflake-arctic-instruct",
             input={
-                "prompt": query,
-                "prompt_template": r"You're a helpful AI. You know the latest news of snowflake: "
-                + text
-                + r"Answer the following question {prompt}.",
+                "prompt": r"You're a helpful AI. You know the latest news of snowflake: "
+                + text + ". " + r"Answer the following question" + query + ".",
                 "max_new_tokens": 512,
             },
         )
