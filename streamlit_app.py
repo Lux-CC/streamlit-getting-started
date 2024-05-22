@@ -77,7 +77,7 @@ def get_top_5_documents(query, df):
 
     # Select the top 5 rows from the dataframe
     top_5_df = df.iloc[top_5_indices]
-    logger.info(top_5_df)
+    st.write(top_5_df)
     return top_5_df
 
 
