@@ -40,7 +40,7 @@ def display_sidebar_ui():
 
         st.subheader("About")
         st.caption(
-            "Hi there! I hope this app helps you catch up with the latest news of snowflake."
+            "Hi there! I hope this app helps you catch up with the latest news of snowflake. Note that performance can be greatly improved still, but I consider this the MVP. Have fun!"
         )
 
 
