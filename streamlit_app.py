@@ -469,8 +469,8 @@ def show_answer(news_df, query):
         href = i["url"]
         summary = fetch_webpage_summary(href, query)
         summaries.append(summary)
-        st.write(summary)
-        
+    
+    st.write(summaries)    
 
     answer = arctic_answer(query, " ".join(summaries))
     st.write(f"**Bot:** {''.join([token for token in answer])}")
