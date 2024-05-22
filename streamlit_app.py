@@ -142,9 +142,6 @@ def arctic_summary(text, query=""):
         yield str(event)
 
 
-@st.cache_resource(
-    show_spinner=True,
-)
 def arctic_answer(query, text):
     """
     Generate a summary for the given text using the Arctic model.
@@ -470,9 +467,9 @@ def show_answer(news_df, query):
         summary = fetch_webpage_summary(href, query)
         summaries.append(summary)
     
-    st.write(summaries)    
-
+    # cannot cache yield iterable since the second iteration it will be empty
     answer = arctic_answer(query, " ".join(summaries))
+    st.write(answer)
     st.write(f"**Bot:** {''.join([token for token in answer])}")
 
 
