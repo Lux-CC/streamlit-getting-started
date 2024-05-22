@@ -77,7 +77,6 @@ def get_top_5_documents(query, df):
 
     # Select the top 5 rows from the dataframe
     top_5_df = df.iloc[top_5_indices]
-    st.write(top_5_df)
     return top_5_df
 
 
@@ -470,6 +469,8 @@ def show_answer(news_df, query):
         href = i["url"]
         summary = fetch_webpage_summary(href, query)
         summaries.append(summary)
+        st.write(summary)
+        
 
     answer = arctic_answer(query, " ".join(summaries))
     st.write(f"**Bot:** {''.join([token for token in answer])}")
