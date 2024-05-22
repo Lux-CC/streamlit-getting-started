@@ -1,4 +1,4 @@
-# What's New in Snowflake? - README
+# What's New in Snowflake?
 
 ## Goal of the App
 
