@@ -48,6 +48,3 @@ Users can configure the app using the sidebar:
 ### Main Interface
 - **News Feed**: Displays a list of aggregated news articles, sorted by recency. Users can click on articles to view more details or summarize the content.
 - **Ask a Question**: Users can input a question related to the news articles. The app retrieves relevant documents and generates an answer based on the content.
-
-## Conclusion
-The "What's New in Snowflake?" app is a powerful tool for staying informed about Snowflake's latest developments. By combining news aggregation, summarization, and question answering, the app offers a comprehensive and interactive way to keep up with the fast-paced world of Snowflake technology.
