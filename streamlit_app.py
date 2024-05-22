@@ -9,7 +9,9 @@ import streamlit as st
 from transformers import AutoTokenizer
 import replicate
 from sentence_transformers import SentenceTransformer
+import logging
 
+logger = logging.getLogger(__name__)
 
 # Set Replicate API token
 os.environ["REPLICATE_API_TOKEN"] = st.secrets["REPLICATE_API_TOKEN"]
@@ -75,7 +77,7 @@ def get_top_5_documents(query, df):
 
     # Select the top 5 rows from the dataframe
     top_5_df = df.iloc[top_5_indices]
-    print(top_5_df)
+    logger.info(top_5_df)
     return top_5_df
 
 
