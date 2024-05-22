@@ -14,12 +14,13 @@ from sentence_transformers import SentenceTransformer
 # Set Replicate API token
 os.environ["REPLICATE_API_TOKEN"] = st.secrets["REPLICATE_API_TOKEN"]
 
+
 def display_sidebar_ui():
     with st.sidebar:
         st.title("Configuration")
         rss_feed_labels = {
             "https://www.snowflake.com/feed/": "Snowflake Official",
-            "https://rss.aws-news.com/custom_feeds/FEzdG/rss": "AWS Snowflake News"
+            "https://rss.aws-news.com/custom_feeds/FEzdG/rss": "AWS Snowflake News",
         }
 
         # Get the list of feed URLs and labels
@@ -35,9 +36,11 @@ def display_sidebar_ui():
         # Convert selected labels back to their URLs
         st.session_state.rss_feeds = [label_to_url[label] for label in selected_labels]
 
-
         st.subheader("About")
-        st.caption("Hi there! I hope this app helps you catch up with the latest news of snowflake.")
+        st.caption(
+            "Hi there! I hope this app helps you catch up with the latest news of snowflake."
+        )
+
 
 @st.cache_resource(show_spinner=False)
 def get_transformer():
@@ -45,6 +48,7 @@ def get_transformer():
     Get a transformer model to use for summarization.
     """
     return SentenceTransformer("snowflake/snowflake-arctic-embed-l")
+
 
 @st.cache_data(show_spinner=True)
 def get_top_5_documents(query, df):
@@ -108,16 +112,16 @@ def arctic_summary(text, query=""):
     Yields:
         str: The generated summary text.
     """
-    prompt= f"Note the following release webpage: {text}."
+    prompt = f"Note the following release webpage: {text}."
     if query:
         prompt += (
             "A user asks the following question about the webpage: " + query + ". "
         )
-    prompt += "Provide a complete summary of the webpage containing all relevant information"
+    prompt += (
+        "Provide a complete summary of the webpage containing all relevant information"
+    )
     if query:
-        prompt += (
-            ", also to answer the question at the end."
-        )
+        prompt += ", also to answer the question at the end."
     else:
         prompt += "."
 
@@ -137,7 +141,9 @@ def arctic_summary(text, query=""):
         yield str(event)
 
 
-@st.cache_resource(show_spinner=True, )
+@st.cache_resource(
+    show_spinner=True,
+)
 def arctic_answer(query, text):
     """
     Generate a summary for the given text using the Arctic model.
@@ -154,7 +160,11 @@ def arctic_answer(query, text):
             "snowflake/snowflake-arctic-instruct",
             input={
                 "prompt": r"You're a helpful AI. You know the latest news of snowflake: "
-                + text + ". " + r"Answer the following question" + query + ".",
+                + text
+                + ". "
+                + r"Answer the following question"
+                + query
+                + ".",
                 "max_new_tokens": 512,
             },
         )
@@ -478,16 +488,21 @@ def main():
 
     for feed in st.session_state.rss_feeds:
         st.session_state.feed_data = news_agg(feed)
-        st.session_state.all_news = pd.concat([st.session_state.all_news, st.session_state.feed_data], ignore_index=True)
-
-    st.session_state.all_news.sort_values(by="elapsed_time", inplace=True)
-    st.session_state.all_news["src_time"] = (
-        st.session_state.all_news["src"] + ("&nbsp;" * 5) + st.session_state.all_news["elapsed_time_str"]
-    )
+        st.session_state.all_news = pd.concat(
+            [st.session_state.all_news, st.session_state.feed_data], ignore_index=True
+        )
 
     if not st.session_state.all_news.empty:
+        st.session_state.all_news.sort_values(by="elapsed_time", inplace=True)
+        st.session_state.all_news["src_time"] = (
+            st.session_state.all_news["src"]
+            + ("&nbsp;" * 5)
+            + st.session_state.all_news["elapsed_time_str"]
+        )
         if query:
-            st.session_state.top_5_docs = get_top_5_documents(query, st.session_state.all_news)
+            st.session_state.top_5_docs = get_top_5_documents(
+                query, st.session_state.all_news
+            )
             st.subheader("Answer")
             show_answer(st.session_state.top_5_docs, query)
         st.subheader("News Feed")
