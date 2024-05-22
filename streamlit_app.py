@@ -453,7 +453,7 @@ def show_news(news_df):
         #     summary = fetch_webpage_summary(href)
         #     st.write(f"**Summary:** {summary}")
 
-
+@st.cache_data
 def show_answer(news_df, query):
     """
     Show the answer.
