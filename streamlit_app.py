@@ -469,7 +469,6 @@ def show_answer(news_df, query):
     
     # cannot cache yield iterable since the second iteration it will be empty
     answer = arctic_answer(query, " ".join(summaries))
-    st.write(answer)
     st.write(f"**Bot:** {''.join([token for token in answer])}")
 
 
