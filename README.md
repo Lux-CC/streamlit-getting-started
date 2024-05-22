@@ -4,7 +4,7 @@
 
 The "What's New in Snowflake?" app is designed to help users stay updated with the latest news and developments related to Snowflake. By aggregating news from various RSS feeds, the app provides a consolidated view of recent updates and allows users to interactively summarize articles and ask questions about the news content.
 
-![Gif of usage](./docs/whats-news-hackathon.gif)
+![Gif of usage](./docs/how-to.gif)
 
 
 
